@@ -1,81 +1,108 @@
 package main
 
 import (
-	"flag"
+	"bufio"
 	"fmt"
 	"os"
+	"strings"
 )
 
 var (
 	key string
-	value string
-	store= make(map[string]string)  //global map declaration
+	value string	
 )
 
 func main(){
+	store:= make(map[string]string)  //global map declaration
+	reader := bufio.NewReader(os.Stdin)     //creates a new buffered reader that reads input from the terminal
 	
+	for{
+		fmt.Println("Enter subcommand: create,update,get,delete,show & exit to quit the program")
+		input, _ := reader.ReadString('\n')     //to read the input from user and store into input var
+		command := strings.TrimSpace(input)     //delete the "\n" from input var and store it in command var
 
-	if len(os.Args) < 2 {
-		fmt.Println("Expected subcommand: create, update, delete, get")
-		os.Exit(1)
+		switch command{
+		case "create":
+			fmt.Println("Enter the key:")
+			key, _ := reader.ReadString('\n')
+			key = strings.TrimSpace(key)
+
+			fmt.Println("Enter the value:")
+			val,_:=reader.ReadString('\n')
+			val = strings.TrimSpace(val)
+
+			if key=="" || val==""{                               
+				fmt.Println("Require the key and value.")
+				os.Exit(0)
+			}
+
+			if existValue, exists := store[key]; exists {
+				fmt.Println("Key already exists. Use 'update' to change the value.")               ///
+				fmt.Println(existValue)
+			} else {
+				store[key] = val
+				fmt.Println("Created successfully.")
+			}
+
+		case "get":
+			fmt.Println("Enter the key:")
+			key,_:= reader.ReadString('\n')
+			key= strings.TrimSpace(key)
+
+			if key==""{
+				fmt.Println("Enter the key properly.")
+				os.Exit(0)
+			}
+
+			if val,ok:=store[key];ok{
+				fmt.Printf("Value is %s\n",val)
+			}else{
+				fmt.Println("key not found")
+			}
+
+		case "update":
+			fmt.Println("Enter the key:")
+			key,_:= reader.ReadString('\n')
+			key = strings.TrimSpace(key)
+
+			if key==""{
+				fmt.Println("require the key.")
+				os.Exit(0)
+			}
+
+			if _,ok:=store[key];ok{
+				fmt.Println("Enter new value:")
+				value,_:=reader.ReadString('\n')
+				value= strings.TrimSpace(value)
+				store[key]=value
+			}else{
+				fmt.Println("Key not found.")
+			}
+		
+		case "delete":
+			fmt.Println("Enter the key you want to delete:")
+			key,_:=reader.ReadString('\n')
+			key=strings.TrimSpace(key)
+
+			if key==""{
+				fmt.Println("require the key.")
+			}else{
+				delete(store,key)
+			 	fmt.Println("Succesfully deleted")
+			}
+		
+		case "show":
+			fmt.Println("The full map is:")
+			fmt.Println(store)
+		
+		case "exit":
+			fmt.Println("Exiting program.")
+            os.Exit(0)
+
+		default:
+			fmt.Println("Wrong Command.")
+		}
 	}
-
-	cmd := os.Args[1]
-
-	// Create a new FlagSet to parse only the flags after the subcommand
-	flags := flag.NewFlagSet(cmd, flag.ExitOnError)
-
-	flags.StringVar(&key,"key","","this is the key")
-	flags.StringVar(&value,"value","","this is the value")
-
-	flags.Parse(os.Args[2:]) // Parse args after the subcommand
-
-
-	switch cmd{
-	case "create":
-		create(key,value)
-	case "update":
-		update()
-	case "delete":
-		delete(key)
-	case "get":
-		get(key)
-	default:
-		fmt.Println("Wrong command")
-	}	
 }
 
-func create(key,value string){
-	fmt.Printf("We have a key %s and value %s\n", key,value)
-	if key=="" || value==""{
-		fmt.Println("Key and Value required to store in the map")
-	}
 
-	store[key]=value
-	fmt.Println(store)
-
-}
-func update(){
-	fmt.Printf("Update value %s for %s key\n",value,key)
-
-	if key=="" || value==""{
-		fmt.Println("Key and Value required to update in the map")
-	}
-	store[key]= value
-	fmt.Println(store)
-
-
-}
-func delete(key string){
-	fmt.Printf("Delete key %s\n",key)
-
-	if key==""{
-		fmt.Println("Key required to delete in the map")
-	}
-	//delete(store,fooo)
-}
-
-func get(key string){
-	fmt.Printf("Get the value for %s key\n",key)
-	
-}
