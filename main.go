@@ -9,12 +9,14 @@ import (
 	"github.com/imsumedhaa/In-memory-database/inmemory"
 )
 
-var (
-	key string
-	value string	
-)
+//var (
+//	key string
+//	value string	
+//)
 
 func main(){
+	mem := inmemory.NewInmemory()
+
 	//store:= make(map[string]string)  //global map declaration
 	reader := bufio.NewReader(os.Stdin)     //creates a new buffered reader that reads input from the terminal
 	
@@ -25,22 +27,22 @@ func main(){
 
 		switch command{
 		case "create":
-			inmemory.Create()
+			mem.Create()
 
 		case "get":
-			inmemory.Get()
+			
 
 		case "update":
-			inmemory.Update()
+			mem.Update()
 		
 		case "delete":
-			inmemory.Delete()
+			mem.Delete()
 		
 		case "show":
-			inmemory.Show()
+			mem.Show()
 		
 		case "exit":
-			inmemory.Exit()
+			mem.Exit()
 
 		default:
 			fmt.Println("Wrong Command.")
