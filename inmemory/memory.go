@@ -1,11 +1,12 @@
 package inmemory
 
-
-import(
+import (
+	"bufio"
 	"fmt"
 	"os"
 	"strings"
-	"bufio"	
+
+	"github.com/imsumedhaa/In-memory-database/database"
 )
 
 //struct name Inmemory
@@ -14,9 +15,9 @@ type Inmemory struct{
 	store map[string]string
 	reader *bufio.Reader
 }
-//Comstructor -> A function which returns a pointer to the struct Inmemory
+//Constructor -> A function which returns a pointer to the struct Inmemory
 
-func NewInmemory() *Inmemory {
+func NewInmemory() database.Database{
 	return &Inmemory{
 		store:  make(map[string]string),
 		reader: bufio.NewReader(os.Stdin),
@@ -24,7 +25,7 @@ func NewInmemory() *Inmemory {
 }
 //struct Receiver
 
-func (i Inmemory)Create(){
+func (i *Inmemory)Create(){
 	fmt.Println("Enter the key:")
 	key, _ := i.reader.ReadString('\n')
 	key = strings.TrimSpace(key)
@@ -47,7 +48,7 @@ func (i Inmemory)Create(){
 	}
 }
 
-func (i Inmemory)Get(){
+func (i *Inmemory)Get(){
 	fmt.Println("Enter the key:")
 	key,_:= i.reader.ReadString('\n')
 	key= strings.TrimSpace(key)
@@ -64,7 +65,7 @@ func (i Inmemory)Get(){
 		}
 }
 
-func (i Inmemory)Update(){
+func (i *Inmemory)Update(){
 	fmt.Println("Enter the key:")
 	key,_:= i.reader.ReadString('\n')
 	key = strings.TrimSpace(key)
@@ -84,7 +85,7 @@ func (i Inmemory)Update(){
 	}
 }
 
-func (i Inmemory)Delete(){
+func (i *Inmemory)Delete(){
 	fmt.Println("Enter the key you want to delete:")
 	key,_:= i.reader.ReadString('\n')
 	key=strings.TrimSpace(key)
@@ -97,12 +98,12 @@ func (i Inmemory)Delete(){
 		}
 }
 
-func (i Inmemory)Show(){
+func (i *Inmemory)Show(){
 	fmt.Println("The full map is:")
 	fmt.Println(i.store)
 }
 
-func (i Inmemory)Exit(){
+func (i *Inmemory)Exit(){
 	fmt.Println("Exiting program.")
     os.Exit(0)
 }
