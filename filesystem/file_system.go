@@ -1,42 +1,52 @@
-package main
+package filesystem
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 )
 
-//struct name Inmemory
-
-type FileSystem struct{       //find out what is necessary for file system
-	Data map[string]string `json:"store"`
-	Key string
-	Value string
-	
+// struct name Inmemory
+type FileSystem struct { //find out what is necessary for file system
+	FileName string
+	//Key      string
+	//Value    string
 }
 
-func NewFileSystem() *FileSystem{       //create some file name database.json only if it is not exist
-
-	if _,err:= os.Stat("jsonfile.txt");err==nil{
-		fmt.Println("File exists")
+func NewFileSystem(name string) (*FileSystem, error){  //create some file name database.json only if it is not exist
+	if _,err:=os.Stat(name);err == nil{
+		fmt.Println("File successfully")
 	}else{
-		os.Create("database.json")
+		if os.IsNotExist(err){
+			fmt.Println("File note creates yet, creating new one...")
+			_,err:= os.Create(name)
+			if err!=nil{
+				return nil, fmt.Errorf("failed to create file: %w", err)
+			}
+		}
+		return nil, fmt.Errorf("failed to get file: %w", err)
 	}
-	
+
 	return &FileSystem{
-		Data:  make(map[string]string),
-			
-	}
+		FileName : name,
+	},nil
+	
+} 
+
+func (i *FileSystem) Create() {
+
 }
-func (f *FileSystem)Create(){
-	fmt.Println("Enter the key:")
-	fmt.Println("Enter the key:")
-	store.Data[key]=value
 
-	jsonData, err := json.MarshalIndent(store, "", "  ")
-	if err != nil {
-		fmt.Println("Error marshaling JSON:", err)
-		return
-	}
+func (i *FileSystem) Update() {
+}
 
+func (i *FileSystem) Delete() {
+}
+
+func (i *FileSystem) Get() {
+}
+
+func (i *FileSystem) Show() {
+}
+
+func (i *FileSystem) Exit() {
 }
