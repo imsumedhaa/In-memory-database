@@ -4,50 +4,55 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strings"
+	"flag"
+	
 
 	"github.com/imsumedhaa/In-memory-database/inmemory"
 )
 
-//var (
-//	key string
-//	value string	
-//)
+var (
+	name string
+	
+)
 
 func main(){
 	mem := inmemory.NewInmemory()
 
 	//store:= make(map[string]string)  //global map declaration
-	reader := bufio.NewReader(os.Stdin)     //creates a new buffered reader that reads input from the terminal
+	//reader := bufio.NewReader(os.Stdin)     //creates a new buffered reader that reads input from the terminal
+
+
+	if len(os.Args)<2{
+		fmt.Println("Expected subcommand 'filesystem'")
+		os.Exit(1)
+	}
+
+	cmd:= os.Args[1]
 	
-	for{
-		fmt.Println("Enter subcommand: create,update,get,delete,show & exit to quit the program")
-		input, _ := reader.ReadString('\n')     //to read the input from user and store into input var
-		command := strings.TrimSpace(input)     //delete the "\n" from input var and store it in command var
+	flags := flag.NewFlagSet(cmd, flag.ExitOnError)
 
-		switch command{
-		case "create":
-			mem.Create()
+	flags.StringVar(&name,"name","database.json","this is the name")
+ 
+	flags.Parse(os.Args[2:]) // Parse args after the subcommand
 
-		case "get":
-			
 
-		case "update":
-			mem.Update()
-		
-		case "delete":
-			mem.Delete()
-		
-		case "show":
-			mem.Show()
-		
-		case "exit":
-			mem.Exit()
+		switch cmd{
+		case "filesystem":
+
+
+		case "inmemory":
+			mem := inmemory.NewInmemory()
+
+	store:= make(map[string]string)  //global map declaration
+	reader := bufio.NewReader(os.Stdin)     //creates a new buffered reader that reads input from the terminal
+
+
+					
 
 		default:
 			fmt.Println("Wrong Command.")
 		}
 	}
-}
+
 
 
