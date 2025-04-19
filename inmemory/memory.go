@@ -59,7 +59,7 @@ func (i *Inmemory)Get(){
 	}
 
 	if val,ok:=i.store[key];ok{
-		fmt.Printf("Value is %s\n",val)
+		fmt.Printf("Value: %s\n", val)
 	}else{
 		fmt.Println("key not found")
 		}

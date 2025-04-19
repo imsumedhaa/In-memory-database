@@ -8,6 +8,5 @@ type Database interface{
 	Get()
 	Show()
 	Exit()
-	Set()
 
 }
