@@ -18,16 +18,17 @@ type FileSystem struct { //find out what is necessary for file system
 
 func NewFileSystem(name string) (*FileSystem, error){  //create some file name database.json only if it is not exist
 	if _,err:=os.Stat(name);err == nil{
-		fmt.Println("File successfully")
+		fmt.Println("File created successfully")
 	}else{
 		if os.IsNotExist(err){
-			fmt.Println("File note creates yet, creating new one...")
+			fmt.Println("File not created yet, creating new one...")
 			_,err:= os.Create(name)
 			if err!=nil{
 				return nil, fmt.Errorf("failed to create file: %w", err)
 			}
+		}else{
+			return nil, fmt.Errorf("failed to get file: %w", err)	
 		}
-		return nil, fmt.Errorf("failed to get file: %w", err)
 	}
 
 	return &FileSystem{
@@ -45,7 +46,7 @@ func (f *FileSystem) Create() {
 	}
 	reader := bufio.NewReader(os.Stdin)    //for input the data from user
 
-	for{
+	
 	fmt.Println("Enter the key:")
 	key, _ := reader.ReadString('\n')      //read input from user and stored in key variable
 	key = strings.TrimSpace(key)           //trim the space which is added next to the key
@@ -77,7 +78,7 @@ func (f *FileSystem) Create() {
 		return
 	}
 	fmt.Println("Key value pair successfully created")
-}
+
 
 }
 
