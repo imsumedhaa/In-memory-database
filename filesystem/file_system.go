@@ -212,7 +212,6 @@ func (f *FileSystem) Show() {
 	fmt.Println("The full map is:")
 	fmt.Println(f.store)
 
-
 }
 
 func (f *FileSystem) Exit() {
