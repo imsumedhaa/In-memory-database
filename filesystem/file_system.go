@@ -127,7 +127,7 @@ func (f *FileSystem) Update() {
 
 	err = os.WriteFile(f.FileName, updatedData, 0644)
 	if err != nil {
-		fmt.Println("Error writing to file:", err)
+		fmt.Errorf("Error writing to file: %w", err)
 		return
 	}
 

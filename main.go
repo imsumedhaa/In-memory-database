@@ -10,6 +10,7 @@ import (
 	"github.com/imsumedhaa/In-memory-database/database"
 	"github.com/imsumedhaa/In-memory-database/filesystem"
 	"github.com/imsumedhaa/In-memory-database/inmemory"
+	"github.com/imsumedhaa/In-memory-database/postgres"
 )
 
 var (
@@ -43,8 +44,15 @@ func main() {
 	case "inmemory":
 		operation = inmemory.NewInmemory()
 
+
+	case "postgres":
+		operation,err = postgres.NewPostgres()
+		if err != nil{
+			fmt.Println("Error creating the connection: %v\n", err)
+		}
+
 	default:
-		fmt.Println("Wrong Command. Should be either 'filesystem' or 'inmemory'")
+		fmt.Println("Wrong Command. Should be either 'filesystem' or 'inmemory' or 'postgres'")
 		os.Exit(1)
 	}
 
