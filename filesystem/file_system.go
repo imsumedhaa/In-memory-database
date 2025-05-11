@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/imsumedhaa/In-memory-database/database"
 )
 
 // struct name Inmemory
@@ -16,7 +18,7 @@ type FileSystem struct { //find out what is necessary for file system
 	//Value    string
 }
 
-func NewFileSystem(name string) (*FileSystem, error){  //create some file name database.json only if it is not exist
+func NewFileSystem(name string) (database.Database, error){  //create some file name database.json only if it is not exist
 	if _,err:=os.Stat(name);err == nil{
 		fmt.Println("File created successfully")
 	}else{
@@ -39,7 +41,7 @@ func NewFileSystem(name string) (*FileSystem, error){  //create some file name d
 	
 } 
 
-func (f *FileSystem) Create() {
+func (f *FileSystem) Create() error{
 	file, err := os.ReadFile(f.FileName)
 	if err == nil && len(file) > 0 {
 		json.Unmarshal(file, &f.store)     //
@@ -69,19 +71,18 @@ func (f *FileSystem) Create() {
 
 	updateData,err:=json.MarshalIndent(f.store,"","  ")
 	if err!= nil{
-		fmt.Println("error while encoding")
-		os.Exit(1)
+		return fmt.Errorf("error while encoding  %w",err)
 	}
 	err= os.WriteFile(f.FileName,updateData,0644)
 	if err!=nil{
-		fmt.Println("Error while writing the file")
-		return
+		return fmt.Errorf("Error while writing the file: %w\n",err)
 	}
 	fmt.Println("Key value pair successfully created")
 
+	return nil
 }
 
-func (f *FileSystem) Update() {
+func (f *FileSystem) Update() error {
 	// Step 1: Load existing data
 	file, err := os.ReadFile(f.FileName)
 	if err == nil && len(file) > 0 {
@@ -95,14 +96,13 @@ func (f *FileSystem) Update() {
 	key = strings.TrimSpace(key)
 
 	if key == "" {
-		fmt.Println("Key cannot be empty.")
-		return
+		return fmt.Errorf("Key cannot be empty.")
+
 	}
 
 	// Step 3: Check if key exists
 	if _, exists := f.store[key]; !exists {
-		fmt.Println("Key not found.")
-		return
+		return fmt.Errorf("Key not found.")
 	}
 
 	// Step 4: Get new value
@@ -111,8 +111,7 @@ func (f *FileSystem) Update() {
 	value = strings.TrimSpace(value)
 
 	if value == "" {
-		fmt.Println("Value cannot be empty.")
-		return
+		return fmt.Errorf("Value cannot be empty.")
 	}
 
 	// Step 5: Update value in store
@@ -121,21 +120,21 @@ func (f *FileSystem) Update() {
 	// Step 6: Write updated data to file
 	updatedData, err := json.MarshalIndent(f.store, "", "  ")
 	if err != nil {
-		fmt.Println("Error encoding data:", err)
-		return
+		return fmt.Errorf("Error encoding data:", err)
 	}
 
 	err = os.WriteFile(f.FileName, updatedData, 0644)
 	if err != nil {
-		fmt.Errorf("Error writing to file: %w", err)
-		return
+		return fmt.Errorf("Error writing to file: %w", err)
 	}
 
 	fmt.Println("Value updated successfully.")
+
+	return nil
 }
 
 
-func (f *FileSystem) Delete() {
+func (f *FileSystem) Delete() error{
 
 
 	file, err := os.ReadFile(f.FileName)
@@ -150,13 +149,11 @@ func (f *FileSystem) Delete() {
 	key= strings.TrimSpace(key)
 
 	if key==""{
-		fmt.Println("Key value cannot be empty...")
-		return
+		return fmt.Errorf("Key value cannot be empty...")
 	}
 
 	if _, exists := f.store[key]; exists {
-		fmt.Println("Key not found.")
-		return
+		return fmt.Errorf("Key not found.")
 	}
 
 	delete(f.store,key)
@@ -164,24 +161,22 @@ func (f *FileSystem) Delete() {
 	updatedData, err := json.MarshalIndent(f.store, "", "  ")
 
 	if err!=nil{
-		fmt.Println("Error encoding data: %w",err)
-		return
+		return fmt.Errorf("Error encoding data: %w",err)
 	}
 
 	
 	err = os.WriteFile(f.FileName, updatedData, 0644)
 	if err != nil {
-		fmt.Println("Error writing to file:", err)
-		return
+		return fmt.Errorf("Error writing to file: %w", err)
 	}
 
 	fmt.Println("Value updated successfully.")
 
-
+	return nil
 
 }
 
-func (f *FileSystem) Get() {
+func (f *FileSystem) Get() error {
 
 	file, err := os.ReadFile(f.FileName)
 	if err == nil && len(file) > 0 {     //check if the error is nil and the file has some data to decode
@@ -194,8 +189,7 @@ func (f *FileSystem) Get() {
 	key = strings.TrimSpace(key)
 
 	if key==""{
-		fmt.Println("Key cannot be empty...")
-		return
+		return fmt.Errorf("Key cannot be empty...")
 	}
 
 	if val,ok:=f.store[key];ok{
@@ -203,19 +197,21 @@ func (f *FileSystem) Get() {
 	}else{
 		fmt.Println("key not found")
 		}
-
+		return nil
 }
 
-func (f *FileSystem) Show() {
+func (f *FileSystem) Show() error{
 
 	fmt.Println("The full map is:")
 	fmt.Println(f.store)
 
+	return nil
 }
 
-func (f *FileSystem) Exit() {
+func (f *FileSystem) Exit() error{
 
 	fmt.Println("Exiting program.")
     os.Exit(0)
 
+    return nil
 }

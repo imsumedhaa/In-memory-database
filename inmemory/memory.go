@@ -17,15 +17,15 @@ type Inmemory struct{
 }
 //Constructor -> A function which returns a pointer to the struct Inmemory
 
-func NewInmemory() database.Database{
+func NewInmemory() (database.Database, error) {
 	return &Inmemory{
 		store:  make(map[string]string),
 		reader: bufio.NewReader(os.Stdin),
-	}
+	},nil
 }
 //struct Receiver
 
-func (i *Inmemory)Create(){
+func (i *Inmemory)Create() error {
 	fmt.Println("Enter the key:")
 	key, _ := i.reader.ReadString('\n')
 	key = strings.TrimSpace(key)
@@ -46,9 +46,10 @@ func (i *Inmemory)Create(){
 		i.store[key] = val
 		fmt.Println("Created successfully.")
 	}
+	return nil
 }
 
-func (i *Inmemory)Get(){
+func (i *Inmemory)Get() error {
 	fmt.Println("Enter the key:")
 	key,_:= i.reader.ReadString('\n')
 	key= strings.TrimSpace(key)
@@ -63,9 +64,10 @@ func (i *Inmemory)Get(){
 	}else{
 		fmt.Println("key not found")
 		}
+		return nil
 }
 
-func (i *Inmemory)Update(){
+func (i *Inmemory)Update() error {
 	fmt.Println("Enter the key:")
 	key,_:= i.reader.ReadString('\n')
 	key = strings.TrimSpace(key)
@@ -83,9 +85,10 @@ func (i *Inmemory)Update(){
 		}else{
 		fmt.Println("Key not found.")
 	}
+	return nil
 }
 
-func (i *Inmemory)Delete(){
+func (i *Inmemory)Delete() error {
 	fmt.Println("Enter the key you want to delete:")
 	key,_:= i.reader.ReadString('\n')
 	key=strings.TrimSpace(key)
@@ -96,14 +99,18 @@ func (i *Inmemory)Delete(){
 			delete(i.store,key)
 			fmt.Println("Succesfully deleted")
 		}
+		return nil
 }
 
-func (i *Inmemory)Show(){
+func (i *Inmemory)Show() error {
 	fmt.Println("The full map is:")
 	fmt.Println(i.store)
+	
+	return nil
 }
 
-func (i *Inmemory)Exit(){
+func (i *Inmemory)Exit() error{
 	fmt.Println("Exiting program.")
     os.Exit(0)
+	return nil;
 }

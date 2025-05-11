@@ -60,7 +60,7 @@ func NewPostgres() (database.Database, error) {
 	return &Postgres{db: db}, nil
 }
 
-func (p *Postgres) Create() {
+func (p *Postgres) Create() error {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println("Enter the key:")
@@ -72,29 +72,28 @@ func (p *Postgres) Create() {
 	value = strings.TrimSpace(value)
 
 	if key == "" || value == "" {
-		fmt.Println("Key and value cannot be empty.")
-		return
+		return fmt.Errorf("Key and value cannot be empty.")
 	}
 
 	// Check if key already exists
 	var existing string
 	err := p.db.QueryRow("SELECT key FROM kvstore WHERE key = $1", key).Scan(&existing)
 	if err == nil {
-		fmt.Println("Key already exists. Use 'update' to change the value.")
-		return
+		return fmt.Errorf("Key already exists. Use 'update' to change the value.")
 	}
 
 	// Insert new key-value pair
 	_, err = p.db.Exec("INSERT INTO kvstore (key, value) VALUES ($1, $2)", key, value)
 	if err != nil {
-		fmt.Println("Error inserting data:", err)
-		return
+		return fmt.Errorf("Error inserting data:", err)
 	}
 
 	fmt.Println("Data inserted successfully.")
+
+	return nil
 }
 
-func (p *Postgres) Delete() {
+func (p *Postgres) Delete() error {
 
 	reader := bufio.NewReader((os.Stdin))
 
@@ -103,8 +102,7 @@ func (p *Postgres) Delete() {
 	key = strings.TrimSpace(key)
 
 	if key == "" {
-		fmt.Println("Key cannot be empty.")
-		return
+		return fmt.Errorf("Key cannot be empty.")
 	}
 
 	var existing string
@@ -112,23 +110,22 @@ func (p *Postgres) Delete() {
 	err := p.db.QueryRow("SELECT key FROM kvstore WHERE key = $1", key).Scan(&existing)
 
 	if err == sql.ErrNoRows{
-		fmt.Println("Key does not exists.")
-		return
+		return fmt.Errorf("Key does not exists.")
+
 	}else if err !=  nil{
 		fmt.Println("Error is ", err)
 	}else{
 		// Delete new key-value pair
 	_, err = p.db.Exec("DELETE FROM kvstore WHERE key = $1", key, )
 	if err != nil {
-		fmt.Println("Error deleting data:", err)
-		return
+		return fmt.Errorf("Error deleting data:", err)
 	}
 	fmt.Println("Key deleted successfully.")
 	}
-
+	return nil
 }
 
-func (p *Postgres) Update() {
+func (p *Postgres) Update() error {
 
 	reader := bufio.NewReader(os.Stdin)
 
@@ -137,16 +134,15 @@ func (p *Postgres) Update() {
 	key= strings.TrimSpace(key)
 
 	if key == ""{
-		fmt.Println("Key cannot be empty.")
-		return
+		return fmt.Errorf("Key cannot be empty.")
 	}
 	var existing string
 
 	err := p.db.QueryRow("SELECT key FROM kvstore WHERE key = $1", key).Scan(&existing)
 
 	if err == sql.ErrNoRows{
-		fmt.Println("Key does not found..")
-		return
+		
+		return fmt.Errorf("Key does not found..")
 	}else if err != nil{
 		fmt.Println("Error while checking: ",err)
 	}else{
@@ -157,22 +153,22 @@ func (p *Postgres) Update() {
 		newVal = strings.TrimSpace(newVal)
 
 		if newVal==""{
-			fmt.Println("Value can not be empty...")
-			return
+			return fmt.Errorf("Value can not be empty...")
 		}else{
 			_, err = p.db.Exec("UPDATE kvstore SET value = $1 WHERE key = $2", newVal, key)
 			if err != nil {
-				fmt.Println("Error updating data:", err)
-				return
+				return fmt.Errorf("Error updating data:", err)
 			}
 			fmt.Println("Key value updated successfully.")
 
 		}		
+	
 	}
+	return nil
 
 }
 
-func (p *Postgres) Get() {
+func (p *Postgres) Get() error {
 
 	reader := bufio.NewReader(os.Stdin)
     fmt.Println("Enter the key:")
@@ -180,31 +176,29 @@ func (p *Postgres) Get() {
     key = strings.TrimSpace(key)
 
     if key == "" {
-        fmt.Println("Key cannot be empty")
-        return
+        return fmt.Errorf("Key cannot be empty")
     }
 
     var value string
     err := p.db.QueryRow("SELECT value FROM kvstore WHERE key = $1", key).Scan(&value)
 
     if err == sql.ErrNoRows {
-        fmt.Println("Key not found.")
-        return
+        return fmt.Errorf("Key not found.")
     } else if err != nil {
-        fmt.Println("Error while checking the key:", err)
-        return
+        return fmt.Errorf("Error while checking the key:", err)
     }
 
     // If we reach here, the key exists and have the value
     fmt.Printf("Value for key '%s': %s\n", key, value)
 
+	return nil
 }
 
 
-func (p *Postgres) Show() {
+func (p *Postgres) Show() error {
 	rows,err := p.db.Query("SELECT key, value from kvstore")
 	if err != nil{
-		fmt.Println("Erroe retrieving data")
+		return fmt.Errorf("Erroe retrieving data %w",err)
 	}
 	defer rows.Close()
 
@@ -213,7 +207,7 @@ func (p *Postgres) Show() {
 		err := rows.Scan(&key, &value)
 
 		if err != nil{
-			fmt.Println("Error while scaning the data:", err)
+			fmt.Errorf("Error while scaning the data: %w", err)
 			continue  //if any point cannot scan, skip that particular row and will execute the rest.
 		}
 		//if reach here means no error, can print the key value
@@ -222,13 +216,15 @@ func (p *Postgres) Show() {
 
 	if err = rows.Err(); err != nil {
 
-        fmt.Println("Error iterating over rows:", err)
+        return fmt.Errorf("Error iterating over rows:", err)
 
     }
+	return nil
 }
 
-func (p *Postgres) Exit() {
+func (p *Postgres) Exit() error{
 	fmt.Println("Exiting program...")
 	os.Exit(0)
+	return nil
 }
 

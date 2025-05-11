@@ -2,11 +2,11 @@ package database
 
 
 type Database interface{
-	Create()
-	Update()
-	Delete()
-	Get()
-	Show()
-	Exit()
+	Create() error
+	Update() error
+	Delete() error
+	Get() error
+	Show() error
+	Exit() error
 
 }
