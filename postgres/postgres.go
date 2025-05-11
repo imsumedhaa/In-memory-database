@@ -72,20 +72,20 @@ func (p *Postgres) Create() error {
 	value = strings.TrimSpace(value)
 
 	if key == "" || value == "" {
-		return fmt.Errorf("Key and value cannot be empty.")
+		return fmt.Errorf("key and value cannot be empty")
 	}
 
 	// Check if key already exists
 	var existing string
 	err := p.db.QueryRow("SELECT key FROM kvstore WHERE key = $1", key).Scan(&existing)
 	if err == nil {
-		return fmt.Errorf("Key already exists. Use 'update' to change the value.")
+		return fmt.Errorf("key already exists. Use 'update' to change the value")
 	}
 
 	// Insert new key-value pair
 	_, err = p.db.Exec("INSERT INTO kvstore (key, value) VALUES ($1, $2)", key, value)
 	if err != nil {
-		return fmt.Errorf("Error inserting data:", err)
+		return fmt.Errorf("error inserting data: %w", err)
 	}
 
 	fmt.Println("Data inserted successfully.")
@@ -102,7 +102,7 @@ func (p *Postgres) Delete() error {
 	key = strings.TrimSpace(key)
 
 	if key == "" {
-		return fmt.Errorf("Key cannot be empty.")
+		return fmt.Errorf("key cannot be empty")
 	}
 
 	var existing string
@@ -110,7 +110,7 @@ func (p *Postgres) Delete() error {
 	err := p.db.QueryRow("SELECT key FROM kvstore WHERE key = $1", key).Scan(&existing)
 
 	if err == sql.ErrNoRows{
-		return fmt.Errorf("Key does not exists.")
+		return fmt.Errorf("key does not exist")
 
 	}else if err !=  nil{
 		fmt.Println("Error is ", err)
@@ -118,7 +118,7 @@ func (p *Postgres) Delete() error {
 		// Delete new key-value pair
 	_, err = p.db.Exec("DELETE FROM kvstore WHERE key = $1", key, )
 	if err != nil {
-		return fmt.Errorf("Error deleting data:", err)
+		return fmt.Errorf("error deleting data: %w", err)
 	}
 	fmt.Println("Key deleted successfully.")
 	}
@@ -134,7 +134,7 @@ func (p *Postgres) Update() error {
 	key= strings.TrimSpace(key)
 
 	if key == ""{
-		return fmt.Errorf("Key cannot be empty.")
+		return fmt.Errorf("key cannot be empty")
 	}
 	var existing string
 
@@ -142,7 +142,7 @@ func (p *Postgres) Update() error {
 
 	if err == sql.ErrNoRows{
 		
-		return fmt.Errorf("Key does not found..")
+		return fmt.Errorf("key does not found")
 	}else if err != nil{
 		fmt.Println("Error while checking: ",err)
 	}else{
@@ -153,11 +153,11 @@ func (p *Postgres) Update() error {
 		newVal = strings.TrimSpace(newVal)
 
 		if newVal==""{
-			return fmt.Errorf("Value can not be empty...")
+			return fmt.Errorf("value can not be empty")
 		}else{
 			_, err = p.db.Exec("UPDATE kvstore SET value = $1 WHERE key = $2", newVal, key)
 			if err != nil {
-				return fmt.Errorf("Error updating data:", err)
+				return fmt.Errorf("error updating data: %w", err)
 			}
 			fmt.Println("Key value updated successfully.")
 
@@ -176,16 +176,16 @@ func (p *Postgres) Get() error {
     key = strings.TrimSpace(key)
 
     if key == "" {
-        return fmt.Errorf("Key cannot be empty")
+        return fmt.Errorf("key cannot be empty")
     }
 
     var value string
     err := p.db.QueryRow("SELECT value FROM kvstore WHERE key = $1", key).Scan(&value)
 
     if err == sql.ErrNoRows {
-        return fmt.Errorf("Key not found.")
+        return fmt.Errorf("key not found")
     } else if err != nil {
-        return fmt.Errorf("Error while checking the key:", err)
+        return fmt.Errorf("error while checking the key: %w", err)
     }
 
     // If we reach here, the key exists and have the value
@@ -198,7 +198,7 @@ func (p *Postgres) Get() error {
 func (p *Postgres) Show() error {
 	rows,err := p.db.Query("SELECT key, value from kvstore")
 	if err != nil{
-		return fmt.Errorf("Erroe retrieving data %w",err)
+		return fmt.Errorf("error retrieving data %w",err)
 	}
 	defer rows.Close()
 
@@ -207,7 +207,7 @@ func (p *Postgres) Show() error {
 		err := rows.Scan(&key, &value)
 
 		if err != nil{
-			fmt.Errorf("Error while scaning the data: %w", err)
+			fmt.Printf("error while scaning the data: %v\n", err)   ////????
 			continue  //if any point cannot scan, skip that particular row and will execute the rest.
 		}
 		//if reach here means no error, can print the key value
@@ -216,7 +216,7 @@ func (p *Postgres) Show() error {
 
 	if err = rows.Err(); err != nil {
 
-        return fmt.Errorf("Error iterating over rows:", err)
+        return fmt.Errorf("error iterating over rows: %w", err)
 
     }
 	return nil

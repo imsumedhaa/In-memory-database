@@ -75,7 +75,7 @@ func (f *FileSystem) Create() error{
 	}
 	err= os.WriteFile(f.FileName,updateData,0644)
 	if err!=nil{
-		return fmt.Errorf("Error while writing the file: %w\n",err)
+		return fmt.Errorf("error while writing the file: %w",err)
 	}
 	fmt.Println("Key value pair successfully created")
 
@@ -96,13 +96,13 @@ func (f *FileSystem) Update() error {
 	key = strings.TrimSpace(key)
 
 	if key == "" {
-		return fmt.Errorf("Key cannot be empty.")
+		return fmt.Errorf("key cannot be empty")
 
 	}
 
 	// Step 3: Check if key exists
 	if _, exists := f.store[key]; !exists {
-		return fmt.Errorf("Key not found.")
+		return fmt.Errorf("key not found")
 	}
 
 	// Step 4: Get new value
@@ -111,7 +111,7 @@ func (f *FileSystem) Update() error {
 	value = strings.TrimSpace(value)
 
 	if value == "" {
-		return fmt.Errorf("Value cannot be empty.")
+		return fmt.Errorf("value cannot be empty")
 	}
 
 	// Step 5: Update value in store
@@ -120,12 +120,12 @@ func (f *FileSystem) Update() error {
 	// Step 6: Write updated data to file
 	updatedData, err := json.MarshalIndent(f.store, "", "  ")
 	if err != nil {
-		return fmt.Errorf("Error encoding data:", err)
+		return fmt.Errorf("error encoding data: %w", err)
 	}
 
 	err = os.WriteFile(f.FileName, updatedData, 0644)
 	if err != nil {
-		return fmt.Errorf("Error writing to file: %w", err)
+		return fmt.Errorf("error writing to file: %w", err)
 	}
 
 	fmt.Println("Value updated successfully.")
@@ -149,11 +149,11 @@ func (f *FileSystem) Delete() error{
 	key= strings.TrimSpace(key)
 
 	if key==""{
-		return fmt.Errorf("Key value cannot be empty...")
+		return fmt.Errorf("key value cannot be empty")
 	}
 
 	if _, exists := f.store[key]; exists {
-		return fmt.Errorf("Key not found.")
+		return fmt.Errorf("key not found")
 	}
 
 	delete(f.store,key)
@@ -161,13 +161,13 @@ func (f *FileSystem) Delete() error{
 	updatedData, err := json.MarshalIndent(f.store, "", "  ")
 
 	if err!=nil{
-		return fmt.Errorf("Error encoding data: %w",err)
+		return fmt.Errorf("error encoding data: %w",err)
 	}
 
 	
 	err = os.WriteFile(f.FileName, updatedData, 0644)
 	if err != nil {
-		return fmt.Errorf("Error writing to file: %w", err)
+		return fmt.Errorf("error writing to file: %w", err)
 	}
 
 	fmt.Println("Value updated successfully.")
@@ -189,7 +189,7 @@ func (f *FileSystem) Get() error {
 	key = strings.TrimSpace(key)
 
 	if key==""{
-		return fmt.Errorf("Key cannot be empty...")
+		return fmt.Errorf("key cannot be empty")
 	}
 
 	if val,ok:=f.store[key];ok{

@@ -37,21 +37,23 @@ func main() {
 	case "filesystem":
 		operation, err = filesystem.NewFileSystem(name)
 		if err != nil {
-			fmt.Errorf("Error creating filesystem: %v\n", err)
+			fmt.Printf("Error creating filesystem: %v\n", err)
 			os.Exit(1)
 		}
 
 	case "inmemory":
 		operation, err = inmemory.NewInmemory()
 		if err!= nil{
-			fmt.Errorf("Error creating the map: %w", err)
+			fmt.Printf("Error creating the map: %v", err)
+			os.Exit(1)
 		}
 
 
 	case "postgres":
 		operation,err = postgres.NewPostgres()
 		if err != nil{
-			fmt.Errorf("Error creating the connection: %w\n", err)
+			fmt.Printf("Error creating the connection: %v\n", err)
+			os.Exit(1)
 		}
 
 	default:
