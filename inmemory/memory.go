@@ -35,8 +35,7 @@ func (i *Inmemory)Create() error {
 	val = strings.TrimSpace(val)
 
 	if key=="" || val==""{                               
-		fmt.Println("Require the key and value.")
-		os.Exit(0)
+		return fmt.Errorf("require the key and value")
 	}
 
 	if existValue, exists := i.store[key]; exists {
