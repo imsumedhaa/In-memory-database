@@ -54,14 +54,13 @@ func (i *Inmemory)Get() error {
 	key= strings.TrimSpace(key)
 
 	if key==""{
-		fmt.Println("Enter the key properly.")
-		os.Exit(0)
+		return fmt.Errorf("require the key")
 	}
 
 	if val,ok:=i.store[key];ok{
 		fmt.Printf("Value: %s\n", val)
 	}else{
-		fmt.Println("key not found")
+		return fmt.Errorf("key not found")
 		}
 		return nil
 }
@@ -71,18 +70,21 @@ func (i *Inmemory)Update() error {
 	key,_:= i.reader.ReadString('\n')
 	key = strings.TrimSpace(key)
 
+	
 	if key==""{
-		fmt.Println("require the key.")
-		os.Exit(0)
+		return fmt.Errorf("require the key")
 	}
 
 	if _,ok:= i.store[key];ok{
 		fmt.Println("Enter new value:")
 		value,_:= i.reader.ReadString('\n')
 		value = strings.TrimSpace(value)
+		if value==""{
+			return fmt.Errorf("require the value")
+		}
 		i.store[key] = value
 		}else{
-		fmt.Println("Key not found.")
+		return fmt.Errorf("key not found")
 	}
 	return nil
 }
@@ -93,11 +95,15 @@ func (i *Inmemory)Delete() error {
 	key=strings.TrimSpace(key)
 
 	if key==""{
-		fmt.Println("require the key.")
-		}else{
-			delete(i.store,key)
-			fmt.Println("Succesfully deleted")
+		return fmt.Errorf("require the key")
 		}
+	if _,ok:= i.store[key];ok{
+		delete(i.store,key)
+		fmt.Println("Succesfully deleted")
+	}else{
+		return fmt.Errorf("key not found")
+		}
+		
 		return nil
 }
 
