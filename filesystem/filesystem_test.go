@@ -50,6 +50,51 @@ func TestCreate(t *testing.T){
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-		
-        }
+			// Create a virtual file system
+			fs := afero.NewMemMapFs()
+			filename := "test.json"
+
+			// Initialize file with initialStore if provided
+			if tt.initialStore != nil {
+				data, _ := json.MarshalIndent(tt.initialStore, "", "  ")
+				_ = afero.WriteFile(fs, filename, data, 0644)
+			} else {
+				_, _ = fs.Create(filename)
+			}
+
+			// Initialize FileSystem with virtual FS
+			fsdb, err := NewFileSystemWithFS(filename, fs)
+			if err != nil {
+				t.Fatalf("setup failed: %v", err)
+			}
+
+			// Call the method under test
+			err = fsdb.CreateWithInput(tt.key, tt.value)
+
+			// Check for expected error message
+			if tt.expectedError != "" {
+				if err == nil || err.Error() != tt.expectedError {
+					t.Errorf("expected error %q, got %v", tt.expectedError, err)
+				}
+			} else if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+
+			// Check final contents of the store
+			data, _ := afero.ReadFile(fs, filename)
+			var got map[string]string
+			_ = json.Unmarshal(data, &got)
+
+			if len(got) != len(tt.expectedStore) {
+				t.Errorf("expected store length %d, got %d", len(tt.expectedStore), len(got))
+			}
+
+			for k, v := range tt.expectedStore {
+				if got[k] != v {
+					t.Errorf("expected key %q to have value %q, got %q", k, v, got[k])
+				}
+			}
+		})
+	}
 }
+
