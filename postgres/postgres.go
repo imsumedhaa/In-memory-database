@@ -60,16 +60,7 @@ func NewPostgres() (database.Database, error) {
 	return &Postgres{db: db}, nil
 }
 
-func (p *Postgres) Create() error {
-	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Println("Enter the key:")
-	key, _ := reader.ReadString('\n')
-	key = strings.TrimSpace(key)
-
-	fmt.Println("Enter the value:")
-	value, _ := reader.ReadString('\n')
-	value = strings.TrimSpace(value)
+func (p *Postgres) Create(key,value string) error {
 
 	if key == "" || value == "" {
 		return fmt.Errorf("key and value cannot be empty")
@@ -93,13 +84,7 @@ func (p *Postgres) Create() error {
 	return nil
 }
 
-func (p *Postgres) Delete() error {
-
-	reader := bufio.NewReader((os.Stdin))
-
-	fmt.Println("Enter the key you want to delete:")
-	key,_ := reader.ReadString('\n')
-	key = strings.TrimSpace(key)
+func (p *Postgres) Delete(key string) error {
 
 	if key == "" {
 		return fmt.Errorf("key cannot be empty")
@@ -125,13 +110,7 @@ func (p *Postgres) Delete() error {
 	return nil
 }
 
-func (p *Postgres) Update() error {
-
-	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Println("Enter the key to update the value :")
-	key,_:=reader.ReadString('\n')
-	key= strings.TrimSpace(key)
+func (p *Postgres) Update(key,value string) error {
 
 	if key == ""{
 		return fmt.Errorf("key cannot be empty")
@@ -149,13 +128,11 @@ func (p *Postgres) Update() error {
 		//Key found
 		fmt.Println("Enter the value you want to update:")
 
-		newVal,_ := reader.ReadString('\n')
-		newVal = strings.TrimSpace(newVal)
 
-		if newVal==""{
+		if value==""{
 			return fmt.Errorf("value can not be empty")
 		}else{
-			_, err = p.db.Exec("UPDATE kvstore SET value = $1 WHERE key = $2", newVal, key)
+			_, err = p.db.Exec("UPDATE kvstore SET value = $1 WHERE key = $2", value, key)
 			if err != nil {
 				return fmt.Errorf("error updating data: %w", err)
 			}
@@ -168,12 +145,7 @@ func (p *Postgres) Update() error {
 
 }
 
-func (p *Postgres) Get() error {
-
-	reader := bufio.NewReader(os.Stdin)
-    fmt.Println("Enter the key:")
-    key, _ := reader.ReadString('\n')
-    key = strings.TrimSpace(key)
+func (p *Postgres) Get(key string) error {
 
     if key == "" {
         return fmt.Errorf("key cannot be empty")

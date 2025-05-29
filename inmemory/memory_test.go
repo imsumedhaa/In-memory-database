@@ -9,42 +9,48 @@ import (
 func TestCreate(t *testing.T) {
 	tests := []struct {
 		name          string
-		input         string            // simulated user input: key\nvalue\n
+		key           string
+		value         string
 		initialStore  map[string]string // initial store state
 		expectedError string            // "" means expect no error
 		expectedStore map[string]string // expected final store state
 	}{
 		{
 			name:          "Create new key-value pair",
-			input:         "name\nAlice\n",
+			key:           "name",
+			value:         "abc",
 			initialStore:  map[string]string{},
 			expectedError: "",
-			expectedStore: map[string]string{"name": "Alice"},
+			expectedStore: map[string]string{"name": "abc"},
 		},
 		{
 			name:          "Empty key",
-			input:         "\nAlice\n",
+			key:           "",
+			value:         "foo",
 			initialStore:  map[string]string{},
 			expectedError: "require the key and value",
 			expectedStore: map[string]string{},
 		},
 		{
 			name:          "Empty value",
-			input:         "name\n\n",
+			key:           "name",
+			value:         "",
 			initialStore:  map[string]string{},
 			expectedError: "require the key and value",
 			expectedStore: map[string]string{},
 		},
 		{
 			name:          "Empty key and value",
-			input:         "\n\n\n",
+			key:           "",
+			value:         "",
 			initialStore:  map[string]string{},
 			expectedError: "require the key and value",
 			expectedStore: map[string]string{},
 		},
 		{
 			name:          "Duplicate key does not overwrite",
-			input:         "name\nBob\n",
+			key:           "name",
+			value:         "abc",
 			initialStore:  map[string]string{"name": "Alice"},
 			expectedError: "", // no error returned, but duplicate is not overwritten
 			expectedStore: map[string]string{"name": "Alice"},
@@ -54,11 +60,11 @@ func TestCreate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			inmem := &Inmemory{ //inmemory struct
-				reader: bufio.NewReader(strings.NewReader(tt.input)),
+				reader: bufio.NewReader(strings.NewReader(tt.key + "\n" + tt.value)),
 				store:  copyMap(tt.initialStore),
 			}
 
-			err := inmem.Create()
+			err := inmem.Create(tt.key, tt.value)
 
 			// Check error
 			if tt.expectedError == "" {
@@ -104,35 +110,40 @@ func mapsEqual(a, b map[string]string) bool {
 func TestUpdate(t *testing.T) {
 	tests := []struct {
 		name          string
-		input         string            // simulated user input: key\nvalue\n
+		key           string
+		value         string
 		initialStore  map[string]string // initial store state
 		expectedError string            // "" means expect no error
 		expectedStore map[string]string // expected final store state
 	}{
 		{
 			name:          "Update value",
-			input:         "name\nfoo\n",
+			key:           "name",
+			value:         "abc",
 			initialStore:  map[string]string{"name": "Alice"},
 			expectedError: "", //No error
-			expectedStore: map[string]string{"name": "foo"},
+			expectedStore: map[string]string{"name": "abc"},
 		},
 		{
 			name:          "Empty key",
-			input:         "\nfoo\n",
+			key:           "",
+			value:         "abc",
 			initialStore:  map[string]string{"name": "Alice"},
 			expectedError: "require the key",
 			expectedStore: map[string]string{"name": "Alice"},
 		},
 		{
 			name:          "Empty value",
-			input:         "name\n\n",
+			key:           "name",
+			value:         "",
 			initialStore:  map[string]string{"name": "Alice"},
 			expectedError: "require the value",
 			expectedStore: map[string]string{"name": "Alice"},
 		},
 		{
 			name:          "Key is not there in the map",
-			input:         "age\n19\n",
+			key:           "age",
+			value:         "19",
 			initialStore:  map[string]string{"name": "Alice"},
 			expectedError: "key not found",
 			expectedStore: map[string]string{"name": "Alice"},
@@ -141,11 +152,11 @@ func TestUpdate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			inmem := &Inmemory{
-				reader: bufio.NewReader(strings.NewReader(tt.input)),
+				reader: bufio.NewReader(strings.NewReader(tt.key + "\n" + tt.value)),
 				store:  copyMap(tt.initialStore),
 			}
 
-			err := inmem.Update()
+			err := inmem.Update(tt.key, tt.value)
 
 			if tt.expectedError == "" {
 				if err != nil {
@@ -166,25 +177,25 @@ func TestUpdate(t *testing.T) {
 func TestGet(t *testing.T) {
 	tests := []struct {
 		name          string
-		input         string            
-		initialStore  map[string]string 
-		expectedError string            
+		key           string
+		initialStore  map[string]string
+		expectedError string
 	}{
 		{
 			name:          "Get value",
-			input:         "name\n\n",
+			key:           "name",
 			initialStore:  map[string]string{"name": "Alice"},
 			expectedError: "", //No error
 		},
 		{
 			name:          "Empty key",
-			input:         "\n",
+			key:           "",
 			initialStore:  map[string]string{"name": "Alice"},
 			expectedError: "require the key",
 		},
 		{
 			name:          "Key not found",
-			input:         "age\n",
+			key:           "age",
 			initialStore:  map[string]string{"name": "Alice"},
 			expectedError: "key not found",
 		},
@@ -192,11 +203,11 @@ func TestGet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			inmem := &Inmemory{
-				reader: bufio.NewReader(strings.NewReader(tt.input)),
+				reader: bufio.NewReader(strings.NewReader(tt.key)),
 				store:  copyMap(tt.initialStore),
 			}
 
-			err := inmem.Get()
+			err := inmem.Get(tt.key)
 
 			if tt.expectedError == "" {
 				if err != nil {
@@ -214,25 +225,25 @@ func TestGet(t *testing.T) {
 func TestDelete(t *testing.T) {
 	tests := []struct {
 		name          string
-		input         string            
-		initialStore  map[string]string 
-		expectedError string            
+		key           string
+		initialStore  map[string]string
+		expectedError string
 	}{
 		{
 			name:          "Delete key value pair",
-			input:         "name\n\n",
+			key:           "name",
 			initialStore:  map[string]string{"name": "Alice"},
 			expectedError: "", //No error
 		},
 		{
 			name:          "Empty key",
-			input:         "\n\n",
+			key:           "",
 			initialStore:  map[string]string{"name": "Alice"},
 			expectedError: "require the key",
 		},
 		{
 			name:          "Key not found",
-			input:         "age\n\n",
+			key:           "age\n\n",
 			initialStore:  map[string]string{"name": "Alice"},
 			expectedError: "key not found",
 		},
@@ -240,11 +251,11 @@ func TestDelete(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			inmem := &Inmemory{
-				reader: bufio.NewReader(strings.NewReader(tt.input)),
+				reader: bufio.NewReader(strings.NewReader(tt.key)),
 				store:  copyMap(tt.initialStore),
 			}
 
-			err := inmem.Get()
+			err := inmem.Get(tt.key)
 
 			if tt.expectedError == "" {
 				if err != nil {
@@ -279,7 +290,7 @@ func TestShow(t *testing.T) {
 				store: copyMap(tt.initialStore),
 			}
 
-			err := inmem.Show() 
+			err := inmem.Show()
 
 			if tt.expectedError == "" {
 				if err != nil {

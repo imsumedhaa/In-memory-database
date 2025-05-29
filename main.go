@@ -15,7 +15,6 @@ import (
 
 var (
 	name string
-	
 )
 
 func main() {
@@ -70,22 +69,74 @@ func main() {
 
 		switch command {
 		case "create":
-			operation.Create()
+			fmt.Println("Enter the key:")
+	        key, _ := reader.ReadString('\n')
+	        key = strings.TrimSpace(key)
+
+	        fmt.Println("Enter the value:")
+			value, _ := reader.ReadString('\n')
+	  		value = strings.TrimSpace(value)
+
+			err := operation.Create(key , value)
+			if err !=nil{
+				fmt.Printf("Error while creating the map: %v\n",err)
+				os.Exit(1)
+			}
+
 
 		case "get":
-			operation.Get()
+			fmt.Println("Enter the key:")
+			key, _ := reader.ReadString('\n')
+			key = strings.TrimSpace(key)
+
+			err :=operation.Get(key)
+			if err!= nil{
+				fmt.Printf("Error while getting the value: %v\n",err)
+				os.Exit(1)
+			}
 
 		case "update":
-			operation.Update()
+			fmt.Println("Enter the key:")
+			key, _ := reader.ReadString('\n')
+			key = strings.TrimSpace(key)
+
+			fmt.Println("Enter the value:")
+			value, _ := reader.ReadString('\n')
+	  		value = strings.TrimSpace(value)
+
+
+			err := operation.Update(key,value)
+			if err!= nil{
+				fmt.Printf("Error while updating the value: %v\n",err)
+				os.Exit(1)
+			}
+
 
 		case "delete":
-			operation.Delete()
+			fmt.Println("Enter the key you want to delete:")
+			key, _ := reader.ReadString('\n')
+			key = strings.TrimSpace(key)
+
+			err := operation.Delete(key)
+			if err != nil{
+				fmt.Printf("Error while Deleteing the pair: %v\n",err)
+				os.Exit(1)
+			}
 
 		case "show":
-			operation.Show()
+			err := operation.Show()
+			if err != nil{
+				fmt.Printf("Error while showing the map: %v\n",err)
+				os.Exit(1)
+			}
 
 		case "exit":
-			operation.Exit()
+			err := operation.Exit()
+
+			if err != nil{
+				fmt.Printf("Error while exiting the program: %v\n",err)
+				os.Exit(1)
+			}
 
 		default:
 			fmt.Println("Wrong Command.")

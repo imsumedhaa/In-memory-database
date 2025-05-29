@@ -1,11 +1,9 @@
 package filesystem
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/imsumedhaa/In-memory-database/database"
 	"github.com/spf13/afero"
@@ -57,22 +55,12 @@ func NewFileSystem(name string) (database.Database, error) { //create some file 
 	},nil
 }
 
-func (f *FileSystem) Create() error {
+func (f *FileSystem) Create(key, value string) error {
 
 	file, err := afero.ReadFile(f.fs , f.FileName)       //f.fs means “use the file system instance (real or virtual) stored in this struct.”
 	if err == nil && len(file) > 0 {
 		json.Unmarshal(file, &f.store)     //
 	}
-	reader := bufio.NewReader(os.Stdin)    //for input the data from user
-
-	
-	fmt.Println("Enter the key:")
-	key, _ := reader.ReadString('\n')      //read input from user and stored in key variable
-	key = strings.TrimSpace(key)           //trim the space which is added next to the key
-
-	fmt.Println("Enter the value:")       
-	value,_:= reader.ReadString('\n')
-	value = strings.TrimSpace(value)
 
 	if key=="" || value==""{
 		return fmt.Errorf("key and value cannot be empty")
@@ -98,18 +86,12 @@ func (f *FileSystem) Create() error {
 	return nil
 }
 
-func (f *FileSystem) Update() error {
+func (f *FileSystem) Update(key,value string) error {
 	// Step 1: Load existing data
 	file, err := afero.ReadFile(f.fs, f.FileName)    //f.fs means “use the file system instance (real or virtual) stored in this struct.”
 	if err == nil && len(file) > 0 {
 		json.Unmarshal(file, &f.store)       //json.Unmarshal: Convert JSON ➡️ Go data
 	}
-
-	// Step 2: Ask for key
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("Enter the key to update:")
-	key, _ := reader.ReadString('\n')
-	key = strings.TrimSpace(key)
 
 	if key == "" {
 		return fmt.Errorf("key cannot be empty")
@@ -120,11 +102,6 @@ func (f *FileSystem) Update() error {
 	if _, exists := f.store[key]; !exists {
 		return fmt.Errorf("key not found")
 	}
-
-	// Step 4: Get new value
-	fmt.Println("Enter the new value:")
-	value, _ := reader.ReadString('\n')
-	value = strings.TrimSpace(value)
 
 	if value == "" {
 		return fmt.Errorf("value cannot be empty")
@@ -149,24 +126,18 @@ func (f *FileSystem) Update() error {
 	return nil
 }
 
-func (f *FileSystem) Delete() error {
+func (f *FileSystem) Delete(key string) error {
 
 	file, err := afero.ReadFile(f.fs, f.FileName)
 	if err == nil && len(file) > 0 { //check if the error is nil and the file has some data to decode
 		json.Unmarshal(file, &f.store) //decode the data
 	}
 
-	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Println("Enter the key you want to delete:")
-	key, _ := reader.ReadString('\n')
-	key = strings.TrimSpace(key)
-
 	if key == "" {
-		return fmt.Errorf("key value cannot be empty")
+		return fmt.Errorf("key cannot be empty")
 	}
 
-	if _, exists := f.store[key]; exists {
+	if _, exists := f.store[key]; !exists {   ///////
 		return fmt.Errorf("key not found")
 	}
 
@@ -183,37 +154,45 @@ func (f *FileSystem) Delete() error {
 		return fmt.Errorf("error writing to file: %w", err)
 	}
 
-	fmt.Println("Value updated successfully.")
+	fmt.Println("Value deleted successfully.")
 
 	return nil
 
 }
 
-func (f *FileSystem) Get() error {
+func (f *FileSystem) Get(key string) error {
 
 	file, err := afero.ReadFile(f.fs, f.FileName)
 	if err == nil && len(file) > 0 { //check if the error is nil and the file has some data to decode
 		json.Unmarshal(file, &f.store) //decode the data
 	}
 
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("Enter the key you want to get:")
-	key, _ := reader.ReadString('\n')
-	key = strings.TrimSpace(key)
-
 	if key == "" {
 		return fmt.Errorf("key cannot be empty")
 	}
 
+	if _, exists := f.store[key]; !exists {   
+		return fmt.Errorf("key not found")
+	}
+
 	if val, ok := f.store[key]; ok {
 		fmt.Printf("Value: %s\n", val)
-	} else {
-		fmt.Println("key not found")
-	}
+	} 
 	return nil
 }
 
 func (f *FileSystem) Show() error {
+
+	file, err := afero.ReadFile(f.fs, f.FileName)
+	if err!= nil{
+		return fmt.Errorf("error while reading from the file %w",err)
+	}
+	if len(file) > 0{
+		err = json.Unmarshal(file, &f.store)     //data will store from json file to map
+		if err != nil{
+			return fmt.Errorf("failed to decode JSON: %w", err)
+		}
+	}
 
 	fmt.Println("The full map is:")
 	fmt.Println(f.store)

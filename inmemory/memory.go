@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strings"
+	
 
 	"github.com/imsumedhaa/In-memory-database/database"
 )
@@ -27,16 +27,9 @@ func NewInmemory() (database.Database, error) {
 
 //struct Receiver
 
-func (i *Inmemory) Create() error {
-	fmt.Println("Enter the key:")
-	key, _ := i.reader.ReadString('\n')
-	key = strings.TrimSpace(key)
+func (i *Inmemory) Create(key, value string) error {
 
-	fmt.Println("Enter the value:")
-	val, _ := i.reader.ReadString('\n')
-	val = strings.TrimSpace(val)
-
-	if key == "" || val == "" {
+	if key == "" || value == "" {
 		return fmt.Errorf("require the key and value")
 	}
 
@@ -44,16 +37,13 @@ func (i *Inmemory) Create() error {
 		fmt.Println("Key already exists. Use 'update' to change the value.")
 		fmt.Println(existValue)
 	} else {
-		i.store[key] = val
+		i.store[key] = value
 		fmt.Println("Created successfully.")
 	}
 	return nil
 }
 
-func (i *Inmemory) Get() error {
-	fmt.Println("Enter the key:")
-	key, _ := i.reader.ReadString('\n')
-	key = strings.TrimSpace(key)
+func (i *Inmemory) Get(key string) error {
 
 	if key == "" {
 		return fmt.Errorf("require the key")
@@ -67,22 +57,17 @@ func (i *Inmemory) Get() error {
 	return nil
 }
 
-func (i *Inmemory) Update() error {
-	fmt.Println("Enter the key:")
-	key, _ := i.reader.ReadString('\n')
-	key = strings.TrimSpace(key)
 
+func (i *Inmemory) Update(key, value string) error {
+	
 	if key == "" {
 		return fmt.Errorf("require the key")
 	}
-
+	if value == "" {
+		return fmt.Errorf("require the value")
+	}
+	
 	if _, ok := i.store[key]; ok {
-		fmt.Println("Enter new value:")
-		value, _ := i.reader.ReadString('\n')
-		value = strings.TrimSpace(value)
-		if value == "" {
-			return fmt.Errorf("require the value")
-		}
 		i.store[key] = value
 	} else {
 		return fmt.Errorf("key not found")
@@ -90,10 +75,9 @@ func (i *Inmemory) Update() error {
 	return nil
 }
 
-func (i *Inmemory) Delete() error {
-	fmt.Println("Enter the key you want to delete:")
-	key, _ := i.reader.ReadString('\n')
-	key = strings.TrimSpace(key)
+
+func (i *Inmemory) Delete(key string) error {
+	
 
 	if key == "" {
 		return fmt.Errorf("require the key")
