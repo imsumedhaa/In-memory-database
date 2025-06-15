@@ -3,11 +3,15 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
-	"os"
+	
 )
 
 type Client interface {
 	CreatePostgressRow(key, val string) error
+	DeletePostgressRow(key string) error
+	UpdatePostgressRow(key, value string) error
+	GetPostgressRow(key string) error
+	ShowPostgressRow() error
 }
 
 // NewClient creates new HCloud clients.
@@ -27,7 +31,7 @@ func NewClient(port, username, password, dbname string) (Client,error){
 		value TEXT
 	)`)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create table: %w", err)
+		return nil, fmt.Errorf("failed to create key value: %w", err)
 	}
 
 	fmt.Println("Connected to Postgres successfully.")
@@ -56,7 +60,7 @@ func (r *realClient) CreatePostgressRow(key, val string) error {
 	return nil
 }
 
-func (r *realClient) DeletePostgressRow(key, val string) error {
+func (r *realClient) DeletePostgressRow(key string) error {
 
 	var existing string
 
@@ -108,8 +112,9 @@ func (r *realClient) UpdatePostgressRow(key, value string) error {
 	return nil
 }
 
-func (r *realClient) GetPostgressRow(key, value string) error {
-
+func (r *realClient) GetPostgressRow(key string) error {
+	
+	var value string
 	err := r.db.QueryRow("SELECT value FROM kvstore WHERE key = $1", key).Scan(&value)
 
 	if err == sql.ErrNoRows {
@@ -118,24 +123,42 @@ func (r *realClient) GetPostgressRow(key, value string) error {
 		return fmt.Errorf("error while checking the key: %w", err)
 	}
 
+	// If we reach here, the key exists and have the value
+	fmt.Printf("Value for key '%s': %s\n", key, value)
+
 	return nil
 }
 
-func (r *realClient) ShowPostgressRow(key, value string) error {
+func (r *realClient) ShowPostgressRow() error {
 
-	err := r.db.QueryRow("SELECT value FROM kvstore WHERE key = $1", key).Scan(&value)
+	rows, err := r.db.Query("SELECT key, value from kvstore")
+	if err != nil {
+		return fmt.Errorf("error retrieving data %w", err)
+	}
+	defer rows.Close()
 
-	if err == sql.ErrNoRows {
-		return fmt.Errorf("key not found")
-	} else if err != nil {
-		return fmt.Errorf("error while checking the key: %w", err)
+	var key, value string
+	for rows.Next() {
+		err := rows.Scan(&key, &value)
+
+		if err != nil {
+			fmt.Printf("error while scaning the data: %v\n", err) ////????
+			continue                                              //if any point cannot scan, skip that particular row and will execute the rest.
+		}
+		//if reach here means no error, can print the key value
+		fmt.Printf("Key : %s, Value : %s\n", key, value)
+	}
+
+	if err = rows.Err(); err != nil {
+
+		return fmt.Errorf("error iterating over rows: %w", err)
+
 	}
 
 	return nil
 }
 
-func (r *realClient) ExitPostgressRow(key, value string) error {
-	fmt.Println("Exiting program...")
-	os.Exit(0)
+func (r *realClient) ExitPostgressRow() error {
+	
 	return nil
 }
