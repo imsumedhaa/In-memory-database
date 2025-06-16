@@ -27,6 +27,100 @@ func (_m *Client) CreatePostgressRow(key string, val string) error {
 	return r0
 }
 
+// DeletePostgressRow provides a mock function with given fields: key
+func (_m *Client) DeletePostgressRow(key string) error {
+	ret := _m.Called(key)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePostgressRow")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(key)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GetPostgressRow provides a mock function with given fields: key
+func (_m *Client) GetPostgressRow(key string) (string, error) {
+	ret := _m.Called(key)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPostgressRow")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (string, error)); ok {
+		return rf(key)
+	}
+	if rf, ok := ret.Get(0).(func(string) string); ok {
+		r0 = rf(key)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(key)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ShowPostgressRow provides a mock function with no fields
+func (_m *Client) ShowPostgressRow() (map[string]string, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ShowPostgressRow")
+	}
+
+	var r0 map[string]string
+	var r1 error
+	if rf, ok := ret.Get(0).(func() (map[string]string, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() map[string]string); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdatePostgressRow provides a mock function with given fields: key, value
+func (_m *Client) UpdatePostgressRow(key string, value string) error {
+	ret := _m.Called(key, value)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdatePostgressRow")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(key, value)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewClient creates a new instance of Client. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewClient(t interface {

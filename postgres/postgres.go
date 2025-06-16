@@ -46,7 +46,7 @@ func (p *Postgres) Delete(key string) error {
 	}
 	err := p.client.DeletePostgressRow(key)
 	if err != nil {
-		return fmt.Errorf("error while deleting pairs %w", err)
+		return fmt.Errorf("failed to create postgres row: %w", err)
 	}
 	return nil
 }
@@ -58,7 +58,7 @@ func (p *Postgres) Update(key, value string) error {
 	}
 	err := p.client.UpdatePostgressRow(key, value)
 	if err != nil {
-		return fmt.Errorf("error while updating the value %w", err)
+		return fmt.Errorf("failed to update postgres row %w", err)
 	}
 	return nil
 
@@ -70,20 +70,24 @@ func (p *Postgres) Get(key string) error {
 		return fmt.Errorf("key cannot be empty")
 	}
 
-	err := p.client.GetPostgressRow(key)
+	value,err := p.client.GetPostgressRow(key)
 	if err != nil {
-		return fmt.Errorf("error while getting the value %w", err)
+		return fmt.Errorf("failed to get postgres row: %w", err)
 	}
+	// If we reach here, the key exists and have the value
+	fmt.Printf("Value for key '%s': %s\n", key, value)
 
 	return nil
 }
 
 func (p *Postgres) Show() error {
 
-	err := p.client.ShowPostgressRow()
+	store,err := p.client.ShowPostgressRow()
 	if err != nil {
-		return fmt.Errorf("error while showing %w", err)
+		return fmt.Errorf("failed to show postgres row %w", err)
 	}
+	//if reach here means no error, can print the key value
+	fmt.Println("Map is", store)
 
 	return nil
 }

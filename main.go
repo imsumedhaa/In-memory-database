@@ -19,7 +19,7 @@ var (
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("Expected subcommand 'filesystem'")
+		fmt.Println("Expected subcommand 'filesystem' or 'inmemory' or 'postgres'")
 		os.Exit(1)
 	}
 
@@ -82,7 +82,7 @@ func main() {
 	}
 
 	reader := bufio.NewReader(os.Stdin)
-
+ 
 	for {
 		fmt.Println("Enter subcommand: create,update,get,delete,show & exit to quit the program")
 		input, _ := reader.ReadString('\n') //to read the input from user and store into input var
@@ -101,7 +101,7 @@ func main() {
 			err := operation.Create(key, value)
 			if err != nil {
 				fmt.Printf("Error while creating the map: %v\n", err)
-				os.Exit(1)
+				fmt.Println("try using another key...")
 			}
 
 		case "get":
