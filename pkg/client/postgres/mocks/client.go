@@ -9,12 +9,12 @@ type Client struct {
 	mock.Mock
 }
 
-// CreatePostgressRow provides a mock function with given fields: key, val
-func (_m *Client) CreatePostgressRow(key string, val string) error {
+// CreatePostgresRow provides a mock function with given fields: key, val
+func (_m *Client) CreatePostgresRow(key string, val string) error {
 	ret := _m.Called(key, val)
 
 	if len(ret) == 0 {
-		panic("no return value specified for CreatePostgressRow")
+		panic("no return value specified for CreatePostgresRow")
 	}
 
 	var r0 error
@@ -27,12 +27,12 @@ func (_m *Client) CreatePostgressRow(key string, val string) error {
 	return r0
 }
 
-// DeletePostgressRow provides a mock function with given fields: key
-func (_m *Client) DeletePostgressRow(key string) error {
+// DeletePostgresRow provides a mock function with given fields: key
+func (_m *Client) DeletePostgresRow(key string) error {
 	ret := _m.Called(key)
 
 	if len(ret) == 0 {
-		panic("no return value specified for DeletePostgressRow")
+		panic("no return value specified for DeletePostgresRow")
 	}
 
 	var r0 error
@@ -45,12 +45,12 @@ func (_m *Client) DeletePostgressRow(key string) error {
 	return r0
 }
 
-// GetPostgressRow provides a mock function with given fields: key
-func (_m *Client) GetPostgressRow(key string) (string, error) {
+// GetPostgresRow provides a mock function with given fields: key
+func (_m *Client) GetPostgresRow(key string) (string, error) {
 	ret := _m.Called(key)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetPostgressRow")
+		panic("no return value specified for GetPostgresRow")
 	}
 
 	var r0 string
@@ -73,12 +73,12 @@ func (_m *Client) GetPostgressRow(key string) (string, error) {
 	return r0, r1
 }
 
-// ShowPostgressRow provides a mock function with no fields
-func (_m *Client) ShowPostgressRow() (map[string]string, error) {
+// ShowPostgresRow provides a mock function with no fields
+func (_m *Client) ShowPostgresRow() (map[string]string, error) {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for ShowPostgressRow")
+		panic("no return value specified for ShowPostgresRow")
 	}
 
 	var r0 map[string]string
@@ -103,12 +103,12 @@ func (_m *Client) ShowPostgressRow() (map[string]string, error) {
 	return r0, r1
 }
 
-// UpdatePostgressRow provides a mock function with given fields: key, value
-func (_m *Client) UpdatePostgressRow(key string, value string) error {
+// UpdatePostgresRow provides a mock function with given fields: key, value
+func (_m *Client) UpdatePostgresRow(key string, value string) error {
 	ret := _m.Called(key, value)
 
 	if len(ret) == 0 {
-		panic("no return value specified for UpdatePostgressRow")
+		panic("no return value specified for UpdatePostgresRow")
 	}
 
 	var r0 error

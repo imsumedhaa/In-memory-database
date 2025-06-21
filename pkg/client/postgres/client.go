@@ -6,11 +6,11 @@ import (
 )
 
 type Client interface {
-	CreatePostgressRow(key, val string) error
-	DeletePostgressRow(key string) error
-	UpdatePostgressRow(key, value string) error
-	GetPostgressRow(key string) (string, error)
-	ShowPostgressRow() (map[string]string,error)
+	CreatePostgresRow(key, val string) error
+	DeletePostgresRow(key string) error
+	UpdatePostgresRow(key, value string) error
+	GetPostgresRow(key string) (string, error)
+	ShowPostgresRow() (map[string]string,error)
 }
 
 // NewClient creates new HCloud clients.
@@ -41,7 +41,7 @@ type realClient struct {
 	db *sql.DB
 }
 
-func (r *realClient) CreatePostgressRow(key, val string) error {
+func (r *realClient) CreatePostgresRow(key, val string) error {
 
 	// Check if key already exists
 	var existing string
@@ -59,7 +59,7 @@ func (r *realClient) CreatePostgressRow(key, val string) error {
 	return nil
 }
 
-func (r *realClient) DeletePostgressRow(key string) error {
+func (r *realClient) DeletePostgresRow(key string) error {
 
 	var existing string
 
@@ -81,7 +81,7 @@ func (r *realClient) DeletePostgressRow(key string) error {
 	return nil
 }
 
-func (r *realClient) UpdatePostgressRow(key, value string) error {
+func (r *realClient) UpdatePostgresRow(key, value string) error {
 
 	var existing string
 
@@ -111,7 +111,7 @@ func (r *realClient) UpdatePostgressRow(key, value string) error {
 	return nil
 }
 
-func (r *realClient) GetPostgressRow(key string) (string, error) {
+func (r *realClient) GetPostgresRow(key string) (string, error) {
 
 	var value string
 	err := r.db.QueryRow("SELECT value FROM kvstore WHERE key = $1", key).Scan(&value)
@@ -126,7 +126,7 @@ func (r *realClient) GetPostgressRow(key string) (string, error) {
 	return value, nil
 }
 
-func (r *realClient) ShowPostgressRow() (map[string]string, error) {
+func (r *realClient) ShowPostgresRow() (map[string]string, error) {
 
 	store := make(map[string]string)
 

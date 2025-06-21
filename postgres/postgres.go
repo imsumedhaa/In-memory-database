@@ -29,9 +29,9 @@ func (p *Postgres) Create(key, value string) error {
 		return fmt.Errorf("key and value cannot be empty")
 	}
 
-	err := p.client.CreatePostgressRow(key, value)
+	err := p.client.CreatePostgresRow(key, value)
 	if err != nil {
-		return fmt.Errorf("error creating new row %w", err)
+		return fmt.Errorf("failed to create postgres row: %w", err)
 	}
 
 	fmt.Println("Data inserted successfully.")
@@ -44,9 +44,9 @@ func (p *Postgres) Delete(key string) error {
 	if key == "" {
 		return fmt.Errorf("key cannot be empty")
 	}
-	err := p.client.DeletePostgressRow(key)
+	err := p.client.DeletePostgresRow(key)
 	if err != nil {
-		return fmt.Errorf("failed to create postgres row: %w", err)
+		return fmt.Errorf("failed to delete postgres row: %w", err)
 	}
 	return nil
 }
@@ -56,9 +56,9 @@ func (p *Postgres) Update(key, value string) error {
 	if key == "" {
 		return fmt.Errorf("key cannot be empty")
 	}
-	err := p.client.UpdatePostgressRow(key, value)
+	err := p.client.UpdatePostgresRow(key, value)
 	if err != nil {
-		return fmt.Errorf("failed to update postgres row %w", err)
+		return fmt.Errorf("failed to update postgres row: %w", err)
 	}
 	return nil
 
@@ -70,7 +70,7 @@ func (p *Postgres) Get(key string) error {
 		return fmt.Errorf("key cannot be empty")
 	}
 
-	value,err := p.client.GetPostgressRow(key)
+	value,err := p.client.GetPostgresRow(key)
 	if err != nil {
 		return fmt.Errorf("failed to get postgres row: %w", err)
 	}
@@ -82,9 +82,9 @@ func (p *Postgres) Get(key string) error {
 
 func (p *Postgres) Show() error {
 
-	store,err := p.client.ShowPostgressRow()
+	store,err := p.client.ShowPostgresRow()
 	if err != nil {
-		return fmt.Errorf("failed to show postgres row %w", err)
+		return fmt.Errorf("failed to show postgres row: %w", err)
 	}
 	//if reach here means no error, can print the key value
 	fmt.Println("Map is", store)

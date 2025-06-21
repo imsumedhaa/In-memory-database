@@ -185,7 +185,7 @@ func (f *FileSystem) Show() error {
 
 	file, err := afero.ReadFile(f.fs, f.FileName)
 	if err!= nil{
-		return fmt.Errorf("error while reading from the file %w",err)
+		return fmt.Errorf("error while reading from the file: %w",err)
 	}
 	if len(file) > 0{
 		err = json.Unmarshal(file, &f.store)     //data will store from json file to map
