@@ -11,6 +11,7 @@ import (
 	"github.com/imsumedhaa/In-memory-database/filesystem"
 	"github.com/imsumedhaa/In-memory-database/inmemory"
 	"github.com/imsumedhaa/In-memory-database/postgres"
+
 )
 
 var (
@@ -70,19 +71,42 @@ func main() {
 			port = "5432"
 		}
 
-		operation, err = postgres.NewPostgres(port,username,password, dbname)
+		operation, err = postgres.NewPostgres(port, username, password, dbname)
 		if err != nil {
 			fmt.Printf("Error creating the connection: %v\n", err)
 			os.Exit(1)
 		}
 
+	case "server":
+		
+		reader := bufio.NewReader(os.Stdin)
+
+		fmt.Print("Enter Postgres Username: ")
+		username, _ := reader.ReadString('\n')
+		username = strings.TrimSpace(username)
+
+		fmt.Print("Enter Postgres Password: ")
+		password, _ := reader.ReadString('\n')
+		password = strings.TrimSpace(password)
+
+		fmt.Print("Enter Postgres DB Name: ")
+		dbname, _ := reader.ReadString('\n')
+		dbname = strings.TrimSpace(dbname)
+
+		fmt.Print("Enter Postgres Port (default 5432): ")
+		port, _ := reader.ReadString('\n')
+		port = strings.TrimSpace(port)
+		if port == "" {
+			port = "5432"
+		}
+		api.
 	default:
 		fmt.Println("Wrong Command. Should be either 'filesystem' or 'inmemory' or 'postgres'")
 		os.Exit(1)
 	}
 
 	reader := bufio.NewReader(os.Stdin)
- 
+
 	for {
 		fmt.Println("Enter subcommand: create,update,get,delete,show & exit to quit the program")
 		input, _ := reader.ReadString('\n') //to read the input from user and store into input var
