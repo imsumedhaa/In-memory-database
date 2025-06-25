@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"encoding/json"
@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/imsumedhaa/In-memory-database/database"
 	"github.com/imsumedhaa/In-memory-database/pkg/client/postgres"
 )
 
@@ -23,72 +22,101 @@ type Http struct {
 	client postgres.Client
 }
 
-// Create implements database.Database.
-func (h *Http) Create(key string, value string) error {
-	panic("unimplemented")
-}
+func NewHttp(port, username, password, dbname string)(*Http, error){
+	dbClient, err :=postgres.NewClient(port, username, password, dbname)
 
-// Delete implements database.Database.
-func (h *Http) Delete(key string) error {
-	panic("unimplemented")
-}
-
-// Exit implements database.Database.
-func (h *Http) Exit() error {
-	panic("unimplemented")
-}
-
-// Get implements database.Database.
-func (h *Http) Get(key string) error {
-	panic("unimplemented")
-}
-
-// Show implements database.Database.
-func (h *Http) Show() error {
-	panic("unimplemented")
-}
-
-// Update implements database.Database.
-func (h *Http) Update(key string, value string) error {
-	panic("unimplemented")
-}
-
-func NewHttp(port, username, password, dbname string) (database.Database, error) {
-	dbClient, err := postgres.NewClient(port, username, password, dbname)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect %w", err)
+	if err != nil{
+		return nil,fmt.Errorf("failed to connect: %w",err)
 	}
-	return &Http{client: dbClient}, nil
+	return &Http{client: dbClient},nil
 }
 
-func helloHandler(w http.ResponseWriter, r *http.Request) {
+
+func (h *Http)create(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost && r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	routes()
-	dbClient, _ := postgres.NewClient("5431", "admin", "Sumedha1234", "mydb")
-	dbClient.CreatePostgresRow("key1", "value1")
+	
+	
+	if err := h.client.CreatePostgresRow("key1", "value1");err!=nil{
+		//http.Error()
+	}
 
 	response := Response{Message: "Hello, World!"}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
 
-func Run() {
+func (h *Http)delete(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost && r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if err := h.client.DeletePostgresRow("key1"); err != nil{
+		//
+	}
+
+
+}
+
+func (h *Http)update(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost && r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if err := h.client.UpdatePostgresRow("key1","val1"); err != nil{
+		//
+	}
+
+
+}
+
+func (h *Http)get(w http.ResponseWriter, r *http.Request)() {
+	if r.Method != http.MethodPost && r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if _, err := h.client.GetPostgresRow("key1"); err != nil{
+		//
+	}
+
+
+}
+
+func (h *Http)show(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost && r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if _, err := h.client.ShowPostgresRow(); err != nil{
+		//
+	}
+
+
+}
+
+
+
+
+func (h *Http)Run() error {
 
 	log.Println("Server started on http://localhost:8080")
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to run server: %w", err)
 	}
+	return nil
 }
 
-func routes() {
-	http.HandleFunc("/Create", helloHandler)
-	http.HandleFunc("/Update", helloHandler)
-	http.HandleFunc("/Delete", helloHandler)
-	http.HandleFunc("/Get", helloHandler)
-	http.HandleFunc("/Show", helloHandler)
+func (h *Http)routes() {
+	http.HandleFunc("/Create", h.create)
+	http.HandleFunc("/Update", h.update)
+	http.HandleFunc("/Delete", h.delete)
+	http.HandleFunc("/Get", h,get)
+	//http.HandleFunc("/Show", helloHandler)
 }
