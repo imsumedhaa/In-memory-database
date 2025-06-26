@@ -103,7 +103,7 @@ func main() {
 		httpConfig,err := api.NewHttp(port, username, password,dbname)
 		
 		if err != nil{
-			fmt.Println("Error creating the http connection: %v\n", err)
+			fmt.Printf("Error creating the http connection: %v\n", err)
 			os.Exit(1)
 		}
 
