@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
@@ -12,13 +13,30 @@ import (
 	"github.com/imsumedhaa/In-memory-database/filesystem"
 	"github.com/imsumedhaa/In-memory-database/inmemory"
 	"github.com/imsumedhaa/In-memory-database/postgres"
+	"github.com/joho/godotenv"
 )
+
+func init() {
+	// load .env file
+	if err := godotenv.Load(); err != nil {
+		log.Println("No env file found")
+	}
+}
 
 var (
 	name string
 )
 
 func main() {
+	port := os.Getenv("DB_PORT")
+	username := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	dbname := os.Getenv("DB_NAME")
+
+	if port == "" || username == "" || password == "" || dbname == "" {
+		log.Fatal("Missing one or more required environment variables")
+	}
+
 	if len(os.Args) < 2 {
 		fmt.Println("Expected subcommand 'filesystem' or 'inmemory' or 'postgres'")
 		os.Exit(1)
@@ -50,27 +68,6 @@ func main() {
 
 	case "postgres":
 
-		reader := bufio.NewReader(os.Stdin)
-
-		fmt.Print("Enter Postgres Username: ")
-		username, _ := reader.ReadString('\n')
-		username = strings.TrimSpace(username)
-
-		fmt.Print("Enter Postgres Password: ")
-		password, _ := reader.ReadString('\n')
-		password = strings.TrimSpace(password)
-
-		fmt.Print("Enter Postgres DB Name: ")
-		dbname, _ := reader.ReadString('\n')
-		dbname = strings.TrimSpace(dbname)
-
-		fmt.Print("Enter Postgres Port (default 5432): ")
-		port, _ := reader.ReadString('\n')
-		port = strings.TrimSpace(port)
-		if port == "" {
-			port = "5432"
-		}
-
 		operation, err = postgres.NewPostgres(port, username, password, dbname)
 		if err != nil {
 			fmt.Printf("Error creating the connection: %v\n", err)
@@ -78,27 +75,6 @@ func main() {
 		}
 
 	case "server":
-
-		reader := bufio.NewReader(os.Stdin)
-
-		fmt.Print("Enter Postgres Username: ")
-		username, _ := reader.ReadString('\n')
-		username = strings.TrimSpace(username)
-
-		fmt.Print("Enter Postgres Password: ")
-		password, _ := reader.ReadString('\n')
-		password = strings.TrimSpace(password)
-
-		fmt.Print("Enter Postgres DB Name: ")
-		dbname, _ := reader.ReadString('\n')
-		dbname = strings.TrimSpace(dbname)
-
-		fmt.Print("Enter Postgres Port (default 5432): ")
-		port, _ := reader.ReadString('\n')
-		port = strings.TrimSpace(port)
-		if port == "" {
-			port = "5432"
-		}
 
 		httpConfig, err := api.NewHttp(port, username, password, dbname)
 
