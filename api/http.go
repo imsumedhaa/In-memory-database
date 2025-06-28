@@ -32,14 +32,14 @@ func NewHttp(port, username, password, dbname string) (*Http, error) {
 }
 
 func (h *Http) create(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost && r.Method != http.MethodGet {
+	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	var req Request
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid create body request", http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Invalid create body request: %s", err), http.StatusBadRequest)
 		return
 	}
 
@@ -47,10 +47,9 @@ func (h *Http) create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Key and value cannot be empty", http.StatusBadRequest)
 		return
 	}
-	
 
 	if err := h.client.CreatePostgresRow(req.Key, req.Value); err != nil {
-		http.Error(w, "Failed to create row ", http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Failed to create row: %s", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -59,26 +58,25 @@ func (h *Http) create(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-
 func (h *Http) update(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost && r.Method != http.MethodGet {
+	if r.Method != http.MethodPut {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	var req Request
-	if err := json.NewDecoder(r.Body).Decode(&req); err !=nil{
-		http.Error(w,"Invalid update body request", http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, fmt.Sprintf("Invalid update body request: %s", err), http.StatusBadRequest)
 		return
 	}
 
 	if req.Key == "" || req.Value == "" {
 		http.Error(w, "Key and value cannot be empty", http.StatusBadRequest)
 		return
-	}	
+	}
 
 	if err := h.client.UpdatePostgresRow(req.Key, req.Value); err != nil {
-		http.Error(w, "Failed to update row ", http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Failed to update row: %s ", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -87,23 +85,20 @@ func (h *Http) update(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-
-
 func (h *Http) delete(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost && r.Method != http.MethodGet {
+	if r.Method != http.MethodDelete {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 	var req Request
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil{
-		http.Error(w,"Invalid Delete body request", http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, fmt.Sprintf("Invalid Delete body request: %s", err), http.StatusBadRequest)
 		return
 	}
 
-
 	if err := h.client.DeletePostgresRow(req.Key); err != nil {
-		http.Error(w, "Failed to delete row ", http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Failed to delete row: %s", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -112,29 +107,27 @@ func (h *Http) delete(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-
-
 func (h *Http) get(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost && r.Method != http.MethodGet {
+	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	var req Request
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid create body request", http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Invalid create body request: %s", err), http.StatusBadRequest)
 		return
 	}
 
-	if req.Key == ""  {
+	if req.Key == "" {
 		http.Error(w, "Key cannot be empty", http.StatusBadRequest)
 		return
 	}
 
 	value, err := h.client.GetPostgresRow(req.Key)
-	
+
 	if err != nil {
-		http.Error(w, "Failed to get the row ", http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Failed to get the row: %s", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -148,24 +141,20 @@ func (h *Http) get(w http.ResponseWriter, r *http.Request) {
 
 }
 
-
-
 func (h *Http) show(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost && r.Method != http.MethodGet {
+	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	store, err := h.client.ShowPostgresRow()
 	if err != nil {
-		http.Error(w, "Failed to show row ", http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Failed to show row: %s", err), http.StatusInternalServerError)
 	}
 
-	
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(store)
 }
-
 
 func (h *Http) Run() error {
 	h.routes()
@@ -177,12 +166,10 @@ func (h *Http) Run() error {
 	return nil
 }
 
-
-
 func (h *Http) routes() {
-	http.HandleFunc("/Create", h.create)
-	http.HandleFunc("/Update", h.update)
-	http.HandleFunc("/Delete", h.delete)
-	http.HandleFunc("/Get", h.get)
-	http.HandleFunc("/Show", h.show)
+	http.HandleFunc("/create", h.create)
+	http.HandleFunc("/update", h.update)
+	http.HandleFunc("/delete", h.delete)
+	http.HandleFunc("/get", h.get)
+	http.HandleFunc("/show", h.show)
 }

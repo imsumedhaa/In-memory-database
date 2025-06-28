@@ -78,7 +78,7 @@ func main() {
 		}
 
 	case "server":
-		
+
 		reader := bufio.NewReader(os.Stdin)
 
 		fmt.Print("Enter Postgres Username: ")
@@ -100,19 +100,18 @@ func main() {
 			port = "5432"
 		}
 
-		httpConfig,err := api.NewHttp(port, username, password,dbname)
-		
-		if err != nil{
+		httpConfig, err := api.NewHttp(port, username, password, dbname)
+
+		if err != nil {
 			fmt.Printf("Error creating the http connection: %v\n", err)
 			os.Exit(1)
 		}
 
-		if err := httpConfig.Run(); err!= nil{
+		if err := httpConfig.Run(); err != nil {
 			fmt.Printf("Error run http server: %v\n", err)
 			os.Exit(1)
 		}
 
-		
 	default:
 		fmt.Println("Wrong Command. Should be either 'filesystem' or 'inmemory' or 'postgres'")
 		os.Exit(1)
