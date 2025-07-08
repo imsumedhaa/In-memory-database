@@ -93,15 +93,15 @@ func (h *Http) delete(w http.ResponseWriter, r *http.Request) {
 	}
 	var req Request
 
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, fmt.Sprintf("Invalid Delete body request: %s", err), http.StatusBadRequest)
+		return
+	}
 	if req.Key == "" {
 		http.Error(w, "Key cannot be empty", http.StatusBadRequest)
 		return
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, fmt.Sprintf("Invalid Delete body request: %s", err), http.StatusBadRequest)
-		return
-	}
 
 	if err := h.client.DeletePostgresRow(req.Key); err != nil {
 		http.Error(w, fmt.Sprintf("Failed to delete row: %s", err), http.StatusInternalServerError)
