@@ -2,7 +2,6 @@ package api
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -12,271 +11,350 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHttp_Create_Success(t *testing.T) {
-
-	mockClient := mocks.NewClient(t)
-	mockClient.On("CreatePostgresRow", "Hello", "World").Return(nil).Times(1)
-
-	handler := &Http{client: mockClient}
-
-	reqBody := Request{
-		Key:   "Hello",
-		Value: "World",
+func TestHttp_Create(t *testing.T) {
+	tests := []struct {
+		name         string
+		method       string
+		requestBody  string
+		mockFunc     func(m *mocks.Client)
+		expectedCode int
+		expectedBody string
+	}{
+		{
+			name:         "Invalid JSON",
+			method:       http.MethodPost,
+			requestBody:  `invalid-json`,
+			mockFunc:     func(m *mocks.Client) {},
+			expectedCode: http.StatusBadRequest,
+			expectedBody: "Invalid create body request",
+		},
+		{
+			name:         "Wrong Http Method",
+			method:       http.MethodGet,
+			requestBody:  `{"Key":"Hello","Value":"World"}`,
+			mockFunc:     func(m *mocks.Client) {},
+			expectedCode: http.StatusMethodNotAllowed,
+			expectedBody: "Method not allowed",
+		},
+		{
+			name:         "Missing key",
+			method:       http.MethodPost,
+			requestBody:  `{"Key":"","Value":"World"}`,
+			mockFunc:     func(m *mocks.Client) {},
+			expectedCode: http.StatusBadRequest,
+			expectedBody: "Key cannot be empty",
+		},
+		{
+			name:        "Create Failure - db error",
+			method:      http.MethodPost,
+			requestBody: `{"Key":"Hello","Value":"World"}`,
+			mockFunc: func(m *mocks.Client) {
+				m.On("CreatePostgresRow", "Hello", "World").Return(errors.New("db error")).Times(1)
+			},
+			expectedCode: http.StatusInternalServerError,
+			expectedBody: "Failed to create row: db error",
+		},
+		{
+			name:        "Create Success",
+			method:      http.MethodPost,
+			requestBody: `{"Key":"Hello","Value":"World"}`,
+			mockFunc: func(m *mocks.Client) {
+				m.On("CreatePostgresRow", "Hello", "World").Return(nil).Times(1)
+			},
+			expectedCode: http.StatusOK,
+			expectedBody: "Row created succesfully",
+		},
 	}
-	byteBody, _ := json.Marshal(reqBody)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 
-	//fake http req using in build httptest
-	req := httptest.NewRequest(http.MethodPost, "/create", bytes.NewBuffer(byteBody))
-	req.Header.Set("Content-Type", "application/json")
+			mockClient := mocks.NewClient(t)
+			tt.mockFunc(mockClient)
 
-	rec := httptest.NewRecorder() //Pretends to be a Response Writer. because in testing there is no such server
+			handler := &Http{client: mockClient}
 
-	handler.create(rec, req)
+			req := httptest.NewRequest(tt.method, "/create", bytes.NewBuffer([]byte(tt.requestBody)))
+			req.Header.Set("Content-Type", "application/json")
 
-	assert.Equal(t, http.StatusOK, rec.Code, "expected 200 status code")
+			rec := httptest.NewRecorder()
+			handler.create(rec, req)
 
-	expectedResponse := Response{Message: "Row created succesfully"}
+			assert.Equal(t, tt.expectedCode, rec.Code)
+			assert.Contains(t, rec.Body.String(), tt.expectedBody)
 
-	var actualResponse Response
-	err := json.NewDecoder(rec.Body).Decode(&actualResponse)
-
-	assert.NoError(t, err)
-	assert.Equal(t, expectedResponse, actualResponse)
-
-	mockClient.AssertExpectations(t)
-
+			mockClient.AssertExpectations(t)
+		})
+	}
 }
 
-func TestHttp_Create_Failure(t *testing.T) {
-	mockClient := mocks.NewClient(t) //Creates a mock version of your postgres.Client interface.
-
-	// Simulate DB error
-	mockClient.On("CreatePostgresRow", "Hello", "World").Return(errors.New("db error")).Once()
-
-	handler := &Http{client: mockClient}
-
-	reqBody := Request{
-		Key:   "Hello",
-		Value: "World",
+func TestHttp_Delete(t *testing.T) {
+	tests := []struct {
+		name         string
+		method       string
+		requestBody  string
+		mockFunc     func(m *mocks.Client)
+		expectedCode int
+		expectedBody string
+	}{
+		{
+			name:         "Invalid JSON",
+			method:       http.MethodDelete,
+			requestBody:  `invalid-json`,
+			mockFunc:     func(m *mocks.Client) {},
+			expectedCode: http.StatusBadRequest,
+			expectedBody: "Invalid Delete body request",
+		},
+		{
+			name:         "Missig Key",
+			method:       http.MethodDelete,
+			requestBody:  `{"Key":""}`,
+			mockFunc:     func(m *mocks.Client) {},
+			expectedCode: http.StatusBadRequest,
+			expectedBody: "Key cannot be empty",
+		},
+		{
+			name:         "Wrong Http method",
+			method:       http.MethodGet,
+			requestBody:  `{"Key":"Hello"}`,
+			mockFunc:     func(m *mocks.Client) {},
+			expectedCode: http.StatusMethodNotAllowed,
+			expectedBody: "Method not allowed",
+		},
+		{
+			name:        "Delete Failure - db error",
+			method:      http.MethodDelete,
+			requestBody: `{"Key":"Hello"}`,
+			mockFunc: func(m *mocks.Client) {
+				m.On("DeletePostgresRow", "Hello").Return(errors.New("db error")).Times(1)
+			},
+			expectedCode: http.StatusInternalServerError,
+			expectedBody: "Failed to delete row: db error",
+		},
+		{
+			name:        "Delete Success",
+			method:      http.MethodDelete,
+			requestBody: `{"Key":"Hello"}`,
+			mockFunc: func(m *mocks.Client) {
+				m.On("DeletePostgresRow", "Hello").Return(nil).Times(1)
+			},
+			expectedCode: http.StatusOK,
+			expectedBody: "Row deleted succesfully",
+		},
 	}
-	byteBody, _ := json.Marshal(reqBody)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockClient := mocks.NewClient(t)
+			tt.mockFunc(mockClient)
 
-	req := httptest.NewRequest(http.MethodPost, "/create", bytes.NewBuffer(byteBody))
-	req.Header.Set("Content-Type", "application/json")
+			handler := &Http{client: mockClient}
 
-	rec := httptest.NewRecorder()
+			req := httptest.NewRequest(tt.method, "/delete", bytes.NewBufferString(tt.requestBody))
+			rec := httptest.NewRecorder()
+			handler.delete(rec, req)
 
-	handler.create(rec, req)
+			assert.Equal(t, rec.Code, tt.expectedCode)
+			assert.Contains(t, rec.Body.String(), tt.expectedBody)
 
-	assert.Equal(t, http.StatusInternalServerError, rec.Code, "Expected status 500")
-	assert.Contains(t, rec.Body.String(), "Failed to create row: db error")
-
-	mockClient.AssertExpectations(t)
+			mockClient.AssertExpectations(t)
+		})
+	}
 }
 
-func TestHttp_Update_Success(t *testing.T) {
-
-	mockClient := mocks.NewClient(t)
-	mockClient.On("UpdatePostgresRow", "Hello", "World").Return(nil).Times(1)
-
-	handler := &Http{client: mockClient}
-
-	reqBody := Request{
-		Key:   "Hello",
-		Value: "World",
+func TestHttp_Update(t *testing.T) {
+	tests := []struct {
+		name         string
+		method       string
+		requestBody  string
+		mockFunc     func(m *mocks.Client)
+		expectedCode int
+		expectedBody string
+	}{
+		{
+			name:         "Invalid json",
+			method:       http.MethodPut,
+			requestBody:  `invalid-json`,
+			mockFunc:     func(m *mocks.Client) {},
+			expectedCode: http.StatusBadRequest,
+			expectedBody: "Invalid update body request",
+		},
+		{
+			name:         "Missing Key",
+			method:       http.MethodPut,
+			requestBody:  `{"Key":"","Value": "World"}`,
+			mockFunc:     func(m *mocks.Client) {},
+			expectedCode: http.StatusBadRequest,
+			expectedBody: "Key cannot be empty",
+		},
+		{
+			name:         "Wrong Http Method",
+			method:       http.MethodGet,
+			requestBody:  `{"Key":"Hello","Value": "World"}`,
+			mockFunc:     func(m *mocks.Client) {},
+			expectedCode: http.StatusMethodNotAllowed,
+			expectedBody: "Method not allowed",
+		},
+		{
+			name:        "Update Failure",
+			method:      http.MethodPut,
+			requestBody: `{"Key":"Hello","Value": "World"}`,
+			mockFunc: func(m *mocks.Client) {
+				m.On("UpdatePostgresRow", "Hello", "World").Return(errors.New("db error")).Times(1)
+			},
+			expectedCode: http.StatusInternalServerError,
+			expectedBody: "Failed to update row: db error",
+		},
+		{
+			name:        "Update Success",
+			method:      http.MethodPut,
+			requestBody: `{"Key":"Hello","Value": "World"}`,
+			mockFunc: func(m *mocks.Client) {
+				m.On("UpdatePostgresRow", "Hello", "World").Return(nil).Times(1)
+			},
+			expectedCode: http.StatusOK,
+			expectedBody: "Row updated succesfully",
+		},
 	}
-	byteReqBody, _ := json.Marshal(reqBody)
-	req := httptest.NewRequest(http.MethodPut, "/update", bytes.NewBuffer(byteReqBody))
-	req.Header.Set("Content-Type", "application/json")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockClient := mocks.NewClient(t)
+			tt.mockFunc(mockClient)
 
-	rec := httptest.NewRecorder()
-	handler.update(rec, req)
+			handler := &Http{client: mockClient}
 
-	assert.Equal(t, http.StatusOK, rec.Code, "Epected status code 200")
+			req := httptest.NewRequest(tt.method, "/update", bytes.NewBufferString(tt.requestBody))
+			rec := httptest.NewRecorder()
 
-	expectedResponse := Response{Message: "Row updated succesfully"}
+			handler.update(rec, req)
+			assert.Equal(t, rec.Code, tt.expectedCode)
+			assert.Contains(t, rec.Body.String(), tt.expectedBody)
 
-	var actualResponse Response
-	err := json.NewDecoder(rec.Body).Decode(&actualResponse)
-
-	assert.NoError(t, err)
-	assert.Equal(t, expectedResponse, actualResponse)
-
-	mockClient.AssertExpectations(t)
+			mockClient.AssertExpectations(t)
+		})
+	}
 }
 
-func TestHttp_Update_Failure(t *testing.T) {
-
-	mockClient := mocks.NewClient(t)
-	mockClient.On("UpdatePostgresRow", "Hello", "World").Return(errors.New("db error")).Times(1)
-
-	handler := &Http{client: mockClient}
-
-	reqBody := Request{
-		Key:   "Hello",
-		Value: "World",
+func TestHttp_Get(t *testing.T) {
+	tests := []struct {
+		name         string
+		method       string
+		requestBody  string
+		mockFunc     func(m *mocks.Client)
+		expectedCode int
+		expectedBody string
+	}{
+		{
+			name:         "Invalid json",
+			method:       http.MethodGet,
+			requestBody:  `invalid-json`,
+			mockFunc:     func(m *mocks.Client) {},
+			expectedCode: http.StatusBadRequest,
+			expectedBody: "Invalid get body request",
+		},
+		{
+			name:         "Missing Key",
+			method:       http.MethodGet,
+			requestBody:  `{"Key":""}`,
+			mockFunc:     func(m *mocks.Client) {},
+			expectedCode: http.StatusBadRequest,
+			expectedBody: "Key cannot be empty",
+		},
+		{
+			name:         "Wrong Http Method",
+			method:       http.MethodPost,
+			requestBody:  `{"Key":"Hello"}`,
+			mockFunc:     func(m *mocks.Client) {},
+			expectedCode: http.StatusMethodNotAllowed,
+			expectedBody: "Method not allowed",
+		},
+		{
+			name:        "Get Failure",
+			method:      http.MethodGet,
+			requestBody: `{"Key":"Hello"}`,
+			mockFunc: func(m *mocks.Client) {
+				m.On("GetPostgresRow", "Hello").Return("", errors.New("db error")).Times(1)
+			},
+			expectedCode: http.StatusInternalServerError,
+			expectedBody: "Failed to get the row: db error",
+		},
+		{
+			name:        "Get Success",
+			method:      http.MethodGet,
+			requestBody: `{"Key":"Hello"}`,
+			mockFunc: func(m *mocks.Client) {
+				m.On("GetPostgresRow", "Hello").Return("World", nil).Times(1)
+			},
+			expectedCode: http.StatusOK,
+			expectedBody: `{"Key":"Hello","Value":"World"}`,
+		},
 	}
-	byteReqBody, _ := json.Marshal(reqBody)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockClient := mocks.NewClient(t)
+			tt.mockFunc(mockClient)
 
-	req := httptest.NewRequest(http.MethodPut, "/update", bytes.NewBuffer(byteReqBody))
-	req.Header.Set("Content-Type", "application/json")
+			handler := &Http{client: mockClient}
 
-	rec := httptest.NewRecorder()
-	handler.update(rec, req)
+			req := httptest.NewRequest(tt.method, "/get", bytes.NewBufferString(tt.requestBody))
+			rec := httptest.NewRecorder()
 
-	assert.Equal(t, http.StatusInternalServerError, rec.Code, "Expected status code 500")
-	assert.Contains(t, rec.Body.String(), "Failed to update row: db error")
+			handler.show(rec, req)
+			assert.Equal(t, rec.Code, tt.expectedCode)
+			assert.Contains(t, rec.Body.String(), tt.expectedBody)
 
-	mockClient.AssertExpectations(t)
-
+			mockClient.AssertExpectations(t)
+		})
+	}
 }
 
-func TestHttp_Delete_Success(t *testing.T) {
-
-	mockClient := mocks.NewClient(t) //NewClient creates a new instance of Client. It also registers a testing interface on the mock
-	mockClient.On("DeletePostgresRow", "Hello").Return(nil).Times(1)
-
-	handler := &Http{client: mockClient}
-
-	reqBody := Request{
-		Key: "Hello",
+func TestHttp_Show(t *testing.T) {
+	tests := []struct {
+		name         string
+		method       string
+		mockFunc     func(m *mocks.Client)
+		expectedCode int
+		expectedBody string
+	}{
+		{
+			name:         "Wrong Http Method",
+			method:       http.MethodPost,
+			mockFunc:     func(m *mocks.Client) {},
+			expectedCode: http.StatusMethodNotAllowed,
+			expectedBody: "Method not allowed",
+		},
+		{
+			name:   "Show Failure",
+			method: http.MethodGet,
+			mockFunc: func(m *mocks.Client) {
+				m.On("ShowPostgresRow").Return(nil, errors.New("db error")).Times(1)
+			},
+			expectedCode: http.StatusInternalServerError,
+			expectedBody: "Failed to show row: db error",
+		},
+		{
+			name:        "Show Success",
+			method:      http.MethodGet,
+			mockFunc: func(m *mocks.Client) {
+				m.On("ShowPostgresRow").Return(map[string]string{"Hello": "World"}, nil).Times(1)
+			},
+			expectedCode: http.StatusOK,
+			expectedBody: `{"Hello":"World"}`,
+		},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockClient := mocks.NewClient(t)
+			tt.mockFunc(mockClient)
 
-	byteReqBody, _ := json.Marshal(reqBody)
-	req := httptest.NewRequest(http.MethodDelete, "/delete", bytes.NewBuffer(byteReqBody))
-	req.Header.Set("Content-Type", "application/json")
+			handler := &Http{client: mockClient}
 
-	rec := httptest.NewRecorder()
-	handler.delete(rec, req)
+			req := httptest.NewRequest(tt.method, "/show", nil)
+			rec := httptest.NewRecorder()
 
-	assert.Equal(t, http.StatusOK, rec.Code, "Expected status code 200")
+			handler.show(rec, req)
+			assert.Equal(t, rec.Code, tt.expectedCode)
+			assert.Contains(t, rec.Body.String(), tt.expectedBody)
 
-	expectedResponse := Response{Message: "Row deleted succesfully"}
-
-	var actualResponse Response
-	err := json.NewDecoder(rec.Body).Decode(&actualResponse)
-
-	assert.NoError(t, err)
-	assert.Equal(t, expectedResponse, actualResponse)
-	mockClient.AssertExpectations(t)
-}
-
-func TestHttp_Delete_Failure(t *testing.T) {
-
-	mockClient := mocks.NewClient(t)
-	mockClient.On("DeletePostgresRow", "Hello").Return(errors.New("db error")).Times(1)
-
-	handler := &Http{client: mockClient}
-
-	reqBody := Request{
-		Key: "Hello",
+			mockClient.AssertExpectations(t)
+		})
 	}
-	byteReqBody, _ := json.Marshal(reqBody)
-	req := httptest.NewRequest(http.MethodDelete, "/delete", bytes.NewBuffer(byteReqBody))
-	req.Header.Set("Content-Type", "application/json")
-
-	rec := httptest.NewRecorder()
-	handler.delete(rec, req)
-
-	assert.Equal(t, http.StatusInternalServerError, rec.Code, "expected status code 500")
-
-	assert.Contains(t, rec.Body.String(), "Failed to delete row: db error")
-	mockClient.AssertExpectations(t)
-}
-
-func TestHttp_Get_Success(t *testing.T) {
-
-	mockClient := mocks.NewClient(t)
-	mockClient.On("GetPostgresRow", "Hello").Return("World", nil).Times(1)
-
-	handler := &Http{client: mockClient}
-
-	reqBody := Request{
-		Key: "Hello",
-	}
-	byteReqBody, _ := json.Marshal(reqBody)
-	req := httptest.NewRequest(http.MethodGet, "/get", bytes.NewBuffer(byteReqBody))
-	req.Header.Set("Content-Type", "application/json")
-
-	rec := httptest.NewRecorder()
-
-	handler.get(rec, req)
-	assert.Equal(t, http.StatusOK, rec.Code, "Expected status code 200")
-
-	expectedResponse := map[string]string{
-		"key":   "Hello",
-		"value": "World",
-	}
-	var actualResponse map[string]string
-	err := json.NewDecoder(rec.Body).Decode(&actualResponse)
-
-	assert.NoError(t, err)
-	assert.Equal(t, expectedResponse, actualResponse)
-	mockClient.AssertExpectations(t)
-}
-
-func TestHttp_Get_Failure(t *testing.T) {
-
-	mockClient := mocks.NewClient(t)
-	mockClient.On("GetPostgresRow", "Hello").Return("", errors.New("db error")).Times(1)
-
-	handler := &Http{client: mockClient}
-
-	reqBody := Request{
-		Key: "Hello",
-	}
-	byteReqBody, _ := json.Marshal(reqBody)
-	req := httptest.NewRequest(http.MethodGet, "/get", bytes.NewBuffer(byteReqBody))
-	req.Header.Set("Content-Type", "application/json")
-
-	rec := httptest.NewRecorder()
-
-	handler.get(rec, req)
-	assert.Equal(t, http.StatusInternalServerError, rec.Code, "Expected 500")
-
-	assert.Contains(t, rec.Body.String(), "Failed to get the row: db error")
-	mockClient.AssertExpectations(t)
-}
-
-func TestHttp_Show_Success(t *testing.T) {
-
-	mockClient := mocks.NewClient(t)
-	expectedResponse := map[string]string{
-
-		"Key":   "Hello",
-		"Value": "World",
-	}
-	mockClient.On("ShowPostgresRow").Return(expectedResponse, nil).Times(1)
-
-	handler := &Http{client: mockClient}
-
-	req := httptest.NewRequest(http.MethodGet, "/show", nil)
-	rec := httptest.NewRecorder()
-	handler.show(rec, req)
-	assert.Equal(t, http.StatusOK, rec.Code)
-
-	var actualResponse map[string]string
-	err := json.NewDecoder(rec.Body).Decode(&actualResponse)
-
-	assert.NoError(t, err)
-	assert.Equal(t, expectedResponse, actualResponse)
-	mockClient.AssertExpectations(t)
-}
-
-func TestHttp_Show_Failure(t *testing.T) {
-
-	mockClient := mocks.NewClient(t)
-	mockClient.On("ShowPostgresRow").Return(nil, errors.New("db error")).Times(1)
-
-	handler := &Http{client: mockClient}
-
-	req := httptest.NewRequest(http.MethodGet, "/show", nil)
-	rec := httptest.NewRecorder()
-
-	handler.show(rec, req)
-	assert.Equal(t,http.StatusInternalServerError,rec.Code,"Expected status code 500")
-
-	assert.Contains(t, rec.Body.String(),"Failed to show row: db error")
-	mockClient.AssertExpectations(t)
-
 }

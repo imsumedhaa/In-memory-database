@@ -150,7 +150,7 @@ func TestUpdate(t *testing.T){
 
 			//create a instance of file system using NewFileSystemWithFS
 
-			store, err := NewFileSystemWithFS(filename, fs)
+	 		store, err := NewFileSystemWithFS(filename, fs)
 			assert.NoError(t,err)    //Check there is no error
 
 			err = store.Update(tt.key,tt.value)

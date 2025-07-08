@@ -43,8 +43,8 @@ func (h *Http) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Key == "" || req.Value == "" {
-		http.Error(w, "Key and value cannot be empty", http.StatusBadRequest)
+	if req.Key == "" {
+		http.Error(w, "Key cannot be empty", http.StatusBadRequest)
 		return
 	}
 
@@ -70,8 +70,8 @@ func (h *Http) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Key == "" || req.Value == "" {
-		http.Error(w, "Key and value cannot be empty", http.StatusBadRequest)
+	if req.Key == "" {
+		http.Error(w, "Key cannot be empty", http.StatusBadRequest)
 		return
 	}
 
@@ -86,11 +86,17 @@ func (h *Http) update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Http) delete(w http.ResponseWriter, r *http.Request) {
+	
 	if r.Method != http.MethodDelete {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 	var req Request
+
+	if req.Key == "" {
+		http.Error(w, "Key cannot be empty", http.StatusBadRequest)
+		return
+	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, fmt.Sprintf("Invalid Delete body request: %s", err), http.StatusBadRequest)
@@ -115,7 +121,7 @@ func (h *Http) get(w http.ResponseWriter, r *http.Request) {
 
 	var req Request
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, fmt.Sprintf("Invalid create body request: %s", err), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Invalid get body request: %s", err), http.StatusBadRequest)
 		return
 	}
 
@@ -132,8 +138,8 @@ func (h *Http) get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := map[string]string{
-		"key":   req.Key,
-		"value": value,
+		"Key":   req.Key,
+		"Value": value,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
