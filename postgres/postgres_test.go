@@ -8,137 +8,261 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPostgres_Create_Success(t *testing.T) {
-	mockClient := mocks.NewClient(t)
-
-	mockClient.On("CreatePostgresRow", "key1", "value1").Return(nil).Times(1)
-
-	db := Postgres{client: mockClient}
-
-	err := db.Create("key1", "value1")
-
-	assert.NoError(t, err)
-
-	mockClient.AssertExpectations(t)
-
-}
-
-func TestPostgres_Create_Failure(t *testing.T) {
-	mockClient := mocks.NewClient(t)
-
-	mockClient.On("CreatePostgresRow", "key1", "val1").Return(errors.New("db error")).Times(1)
-
-	db := Postgres{client: mockClient}
-
-	err := db.Create("key1", "val1")
-
-	assert.EqualError(t, err, "failed to create postgres row: db error")
-
-	mockClient.AssertExpectations(t)
-}
-
-func TestPostgres_Delete_Succes(t *testing.T) {
-	mockClient := mocks.NewClient(t)
-	mockClient.On("DeletePostgresRow", "key1").Return(nil).Times(1)
-
-	db := Postgres{client: mockClient}
-	err := db.Delete("key1")
-
-	assert.NoError(t, err)
-	mockClient.AssertExpectations(t)
-}
-
-func TestPostgres_Delete_Failure(t *testing.T){
-	mockClient := mocks.NewClient(t)
-	mockClient.On("DeletePostgresRow", "key1").Return(errors.New("db error")).Times(1)
-
-	db:= Postgres{client : mockClient}
-	err := db.Delete("key1")
-
-	assert.EqualError(t, err, "failed to delete postgres row: db error")
-	mockClient.AssertExpectations(t)
-
-}
-
-func TestPostgres_Update_Success(t *testing.T){
-	mockClient := mocks.NewClient(t)
-
-	mockClient.On("UpdatePostgresRow","key1","val1").Return(nil).Times(1)
-
-	db := Postgres{client: mockClient}
-	err :=db.Update("key1","val1")
-
-	assert.NoError(t, err)
-	mockClient.AssertExpectations(t)
-
-}
-
-func TestPostgres_Update_Failure(t *testing.T){
-	mockClient := mocks.NewClient(t)
-
-	mockClient.On("UpdatePostgresRow","key1","val1").Return(errors.New("db error")).Times(1)
-
-	db := Postgres{client: mockClient}
-	err :=db.Update("key1","val1")
-
-	assert.EqualError(t, err, "failed to update postgres row: db error")
-	mockClient.AssertExpectations(t)
-
-}
-
-func TestPostgres_Get_Success(t *testing.T){
-	mockClient := mocks.NewClient(t)
-
-	mockClient.On("GetPostgresRow","key1").Return("value1",nil).Times(1)
-
-	db := Postgres{client: mockClient}
-	err :=db.Get("key1")
-
-	assert.NoError(t, err)
-	mockClient.AssertExpectations(t)
-
-}
-
-func TestPostgres_Get_Failure(t *testing.T){
-	mockClient := mocks.NewClient(t)
-
-	mockClient.On("GetPostgresRow","key1").Return("",errors.New("db error")).Times(1)
-
-	db := Postgres{client: mockClient}
-	err :=db.Get("key1")
-
-	assert.EqualError(t, err, "failed to get postgres row: db error")
-	mockClient.AssertExpectations(t)
-}
-
-
-
-func TestPostgres_Show_Success(t *testing.T) {
-	mockClient := mocks.NewClient(t)
-	expectedStore := map[string]string{
-		"key1": "val1",
-		"key2": "val2",
+func TestPostgres_Create(t *testing.T) {
+	tests := []struct {
+		name          string
+		key           string
+		value         string
+		mockFunc      func(m *mocks.Client)
+		expectedError string
+	}{
+		{
+			name:          "Empty Key",
+			key:           "",
+			value:         "World",
+			mockFunc:      func(m *mocks.Client) {},
+			expectedError: "key cannot be empty",
+		},
+		{
+			name:  "Create Failure",
+			key:   "Hello",
+			value: "World",
+			mockFunc: func(m *mocks.Client) {
+				m.On("CreatePostgresRow", "Hello", "World").Return(errors.New("db error")).Times(1)
+			},
+			expectedError: "failed to create postgres row: db error",
+		},
+		{
+			name:  "Create Success",
+			key:   "Hello",
+			value: "World",
+			mockFunc: func(m *mocks.Client) {
+				m.On("CreatePostgresRow", "Hello", "World").Return(nil).Times(1)
+			},
+			expectedError: "",
+		},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 
-	mockClient.On("ShowPostgresRow").Return(expectedStore, nil).Once()
+			mockClient := mocks.NewClient(t)
+			tt.mockFunc(mockClient)
 
-	db := Postgres{client: mockClient}
+			db := &Postgres{client: mockClient}
 
-	err := db.Show()
+			err := db.Create(tt.key, tt.value)
 
-	assert.NoError(t, err)
-	mockClient.AssertExpectations(t)
+			if tt.expectedError != "" {
+				assert.EqualError(t, err, tt.expectedError)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			mockClient.AssertExpectations(t)
+
+		})
+	}
 }
 
-func TestPostgres_Show_Failure(t *testing.T) {
-	mockClient := mocks.NewClient(t)
-	mockClient.On("ShowPostgresRow").Return(nil, errors.New("some DB error")).Once()
+func TestPostgres_Delete(t *testing.T) {
+	tests := []struct {
+		name          string
+		key           string
+		mockFunc      func(m *mocks.Client)
+		expectedError string
+	}{
+		{
+			name:          "Empty Key",
+			key:           "",
+			mockFunc:      func(m *mocks.Client) {},
+			expectedError: "key cannot be empty",
+		},
+		{
+			name: "Delete Failure",
+			key:  "Hello",
+			mockFunc: func(m *mocks.Client) {
+				m.On("DeletePostgresRow", "Hello").Return(errors.New("db error")).Times(1)
+			},
+			expectedError: "failed to delete postgres row: db error",
+		},
+		{
+			name: "Delete Success",
+			key:  "Hello",
+			mockFunc: func(m *mocks.Client) {
+				m.On("DeletePostgresRow", "Hello").Return(nil).Times(1)
+			},
+			expectedError: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 
-	db := Postgres{client: mockClient}
+			mockClient := mocks.NewClient(t)
+			tt.mockFunc(mockClient)
 
-	err := db.Show()
+			db := &Postgres{client: mockClient}
 
-	assert.EqualError(t, err, "failed to show postgres row: some DB error")
-	mockClient.AssertExpectations(t)
+			err := db.Delete(tt.key)
+
+			if tt.expectedError != "" {
+				assert.EqualError(t, err, tt.expectedError)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			mockClient.AssertExpectations(t)
+
+		})
+	}
 }
 
+func TestPostgres_Update(t *testing.T) {
+	tests := []struct {
+		name          string
+		key           string
+		value         string
+		mockFunc      func(m *mocks.Client)
+		expectedError string
+	}{
+		{
+			name:          "Empty Key",
+			key:           "",
+			value:         "World",
+			mockFunc:      func(m *mocks.Client) {},
+			expectedError: "key cannot be empty",
+		},
+		{
+			name:  "Update Failure",
+			key:   "Hello",
+			value: "World",
+			mockFunc: func(m *mocks.Client) {
+				m.On("UpdatePostgresRow", "Hello", "World").Return(errors.New("db error")).Times(1)
+			},
+			expectedError: "failed to update postgres row: db error",
+		},
+		{
+			name:  "Update Success",
+			key:   "Hello",
+			value: "World",
+			mockFunc: func(m *mocks.Client) {
+				m.On("UpdatePostgresRow", "Hello", "World").Return(nil).Times(1)
+			},
+			expectedError: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			mockClient := mocks.NewClient(t)
+			tt.mockFunc(mockClient)
+
+			db := &Postgres{client: mockClient}
+
+			err := db.Update(tt.key, tt.value)
+
+			if tt.expectedError != "" {
+				assert.EqualError(t, err, tt.expectedError)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			mockClient.AssertExpectations(t)
+
+		})
+	}
+}
+
+func TestPostgres_Get(t *testing.T) {
+	tests := []struct {
+		name          string
+		key           string
+		mockFunc      func(m *mocks.Client)
+		expectedError string
+	}{
+		{
+			name:          "Empty Key",
+			key:           "",
+			mockFunc:      func(m *mocks.Client) {},
+			expectedError: "key cannot be empty",
+		},
+		{
+			name: "Get Failure",
+			key:  "Hello",
+			mockFunc: func(m *mocks.Client) {
+				m.On("GetPostgresRow", "Hello").Return("", errors.New("db error")).Times(1)
+			},
+			expectedError: "failed to get postgres row: db error",
+		},
+		{
+			name: "Get Success",
+			key:  "Hello",
+			mockFunc: func(m *mocks.Client) {
+				m.On("GetPostgresRow", "Hello").Return("World", nil).Times(1)
+			},
+			expectedError: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			mockClient := mocks.NewClient(t)
+			tt.mockFunc(mockClient)
+
+			db := &Postgres{client: mockClient}
+
+			err := db.Get(tt.key)
+
+			if tt.expectedError != "" {
+				assert.EqualError(t, err, tt.expectedError)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			mockClient.AssertExpectations(t)
+
+		})
+	}
+}
+
+func TestPostgres_Show(t *testing.T) {
+	tests := []struct {
+		name          string
+		mockFunc      func(m *mocks.Client)
+		expectedError string
+	}{
+		{
+			name: "Show Failure",
+			mockFunc: func(m *mocks.Client) {
+				m.On("ShowPostgresRow").Return(nil, errors.New("db error")).Times(1)
+			},
+			expectedError: "failed to show postgres row: db error",
+		},
+		{
+			name: "Get Success",
+			mockFunc: func(m *mocks.Client) {
+				m.On("ShowPostgresRow").Return(map[string]string{"Hello": "World"}, nil).Times(1)
+			},
+			expectedError: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			mockClient := mocks.NewClient(t)
+			tt.mockFunc(mockClient)
+
+			db := &Postgres{client: mockClient}
+
+			err := db.Show()
+
+			if tt.expectedError != "" {
+				assert.EqualError(t, err, tt.expectedError)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			mockClient.AssertExpectations(t)
+
+		})
+	}
+}

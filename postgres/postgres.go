@@ -25,8 +25,8 @@ func NewPostgres(port, username, password, dbname string) (database.Database, er
 
 func (p *Postgres) Create(key, value string) error {
 
-	if key == "" || value == "" {
-		return fmt.Errorf("key and value cannot be empty")
+	if key == "" {
+		return fmt.Errorf("key cannot be empty")
 	}
 
 	err := p.client.CreatePostgresRow(key, value)
