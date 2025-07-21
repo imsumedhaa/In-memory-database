@@ -13,9 +13,9 @@ type Postgres struct {
 	client postgres.Client
 }
 
-func NewPostgres(port, username, password, dbname string) (database.Database, error) {
+func NewPostgres(host,port, username, password, dbname string) (database.Database, error) {
 
-	dbClient, err := postgres.NewClient(port, username, password, dbname)
+	dbClient, err := postgres.NewClient(host,port, username, password, dbname)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect %w", err)

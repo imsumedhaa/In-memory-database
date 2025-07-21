@@ -22,8 +22,8 @@ type Http struct {
 	client postgres.Client
 }
 
-func NewHttp(port, username, password, dbname string) (*Http, error) {
-	dbClient, err := postgres.NewClient(port, username, password, dbname)
+func NewHttp(host,port, username, password, dbname string) (*Http, error) {
+	dbClient, err := postgres.NewClient(host,port, username, password, dbname)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect: %w", err)

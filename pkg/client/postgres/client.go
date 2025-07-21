@@ -14,10 +14,10 @@ type Client interface {
 }
 
 // NewClient creates new HCloud clients.
-func NewClient(port, username, password, dbname string) (Client, error) {
+func NewClient(host,port, username, password, dbname string) (Client, error) {
 	// Build connection string
-	connStr := fmt.Sprintf("host=localhost port=%s user=%s password=%s dbname=%s sslmode=disable",
-		port, username, password, dbname)
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		host,port, username, password, dbname)
 
 	database, err := sql.Open("postgres", connStr)
 	if err != nil {

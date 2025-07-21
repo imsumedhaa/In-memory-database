@@ -28,12 +28,13 @@ var (
 )
 
 func main() {
+	host := os.Getenv("DB_HOST")
 	port := os.Getenv("DB_PORT")
 	username := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASSWORD")
 	dbname := os.Getenv("DB_NAME")
 
-	if port == "" || username == "" || password == "" || dbname == "" {
+	if host == "" || port == "" || username == "" || password == "" || dbname == "" {
 		log.Fatal("Missing one or more required environment variables")
 	}
 
@@ -68,7 +69,7 @@ func main() {
 
 	case "postgres":
 
-		operation, err = postgres.NewPostgres(port, username, password, dbname)
+		operation, err = postgres.NewPostgres(host,port, username, password, dbname)
 		if err != nil {
 			fmt.Printf("Error creating the connection: %v\n", err)
 			os.Exit(1)
@@ -76,7 +77,7 @@ func main() {
 
 	case "server":
 
-		httpConfig, err := api.NewHttp(port, username, password, dbname)
+		httpConfig, err := api.NewHttp(host,port, username, password, dbname)
 
 		if err != nil {
 			fmt.Printf("Error creating the http connection: %v\n", err)
