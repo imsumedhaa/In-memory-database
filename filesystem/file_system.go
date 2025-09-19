@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-// struct name Inmemory
+
 type FileSystem struct { //find out what is necessary for file system
 	FileName string
 	store    map[string]string

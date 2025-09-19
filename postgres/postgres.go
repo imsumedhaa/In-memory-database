@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/imsumedhaa/In-memory-database/database"
 	"github.com/imsumedhaa/In-memory-database/pkg/client/postgres"
 	_ "github.com/lib/pq"
 )
@@ -13,9 +12,9 @@ type Postgres struct {
 	client postgres.Client
 }
 
-func NewPostgres(host,port, username, password, dbname string) (database.Database, error) {
+func NewPostgres(host, port, username, password, dbname string) (*Postgres, error) {
 
-	dbClient, err := postgres.NewClient(host,port, username, password, dbname)
+	dbClient, err := postgres.NewClient(host, port, username, password, dbname)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect %w", err)
@@ -70,7 +69,7 @@ func (p *Postgres) Get(key string) error {
 		return fmt.Errorf("key cannot be empty")
 	}
 
-	value,err := p.client.GetPostgresRow(key)
+	value, err := p.client.GetPostgresRow(key)
 	if err != nil {
 		return fmt.Errorf("failed to get postgres row: %w", err)
 	}
@@ -82,7 +81,7 @@ func (p *Postgres) Get(key string) error {
 
 func (p *Postgres) Show() error {
 
-	store,err := p.client.ShowPostgresRow()
+	store, err := p.client.ShowPostgresRow()
 	if err != nil {
 		return fmt.Errorf("failed to show postgres row: %w", err)
 	}

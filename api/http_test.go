@@ -331,8 +331,8 @@ func TestHttp_Show(t *testing.T) {
 			expectedBody: "Failed to show row: db error",
 		},
 		{
-			name:        "Show Success",
-			method:      http.MethodGet,
+			name:   "Show Success",
+			method: http.MethodGet,
 			mockFunc: func(m *mocks.Client) {
 				m.On("ShowPostgresRow").Return(map[string]string{"Hello": "World"}, nil).Times(1)
 			},
