@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api-server
+  name: inmemory-api-server
 spec:
   selector:
     matchLabels:
@@ -16,15 +16,30 @@ spec:
         image: sumedhaa09/inmemory-database:v1.0.0
         env:
         - name: DB_HOST
-          value: "postgres-service"
+          valueFrom:
+            configMapKeyRef:
+              name: db-config
+              key: DB_HOST
         - name: DB_PORT
-          value: "5432"
+          valueFrom:
+            configMapKeyRef:
+              name: db-config
+              key: DB_PORT
         - name: DB_USER
-          value: "admin"
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: DB_USER
         - name: DB_PASSWORD
-          value: "Sumedha1234"
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: DB_PASSWORD
         - name: DB_NAME
-          value: "mydb"   
+          valueFrom:
+            configMapKeyRef:
+              name: db-config
+              key: POSTGRES_DB  
         resources:
           limits:
             memory: "128Mi"

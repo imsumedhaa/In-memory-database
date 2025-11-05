@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: postgres
+  name: inmemory-postgres
   labels:
     app: postgres
 spec:
@@ -18,11 +18,20 @@ spec:
         image: postgres:17
         env:
         - name: POSTGRES_USER
-          value: "admin"
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: DB_USER
         - name: POSTGRES_PASSWORD
-          value: "Sumedha1234"
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: DB_PASSWORD
         - name: POSTGRES_DB
-          value: "mydb"
+          valueFrom:
+            configMapKeyRef:
+              name: db-config
+              key: POSTGRES_DB
         resources:
           limits:
             memory: "128Mi"
